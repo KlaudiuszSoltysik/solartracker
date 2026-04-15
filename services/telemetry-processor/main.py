@@ -18,17 +18,19 @@ logging.basicConfig(
     handlers=[logging.StreamHandler(sys.stdout)]
 )
 
+logging.getLogger("pika").setLevel(logging.WARNING)
+
 logger = logging.getLogger("telemetry_processor")
 
 RABBIT_HOST = os.environ.get("RABBIT_HOST", "localhost")
 RABBIT_PORT = int(os.environ.get("RABBIT_PORT", "5672"))
 RABBIT_USER = os.environ.get("RABBIT_USER", "admin")
-RABBIT_PASS = os.environ.get("RABBIT_PASSWORD", "admin")
+RABBIT_PASSWORD = os.environ.get("RABBIT_PASSWORD", "admin")
 
 DB_HOST = os.environ.get("DB_HOST", "localhost")
 DB_PORT = os.environ.get("DB_PORT", "5432")
 DB_USER = os.environ.get("DB_USER", "admin")
-DB_PASS = os.environ.get("DB_PASSWORD", "admin")
+DB_PASSWORD = os.environ.get("DB_PASSWORD", "admin")
 DB_NAME = os.environ.get("DB_NAME", "default_db")
 
 
@@ -37,7 +39,7 @@ def get_db_connection():
         host=DB_HOST,
         port=DB_PORT,
         user=DB_USER,
-        password=DB_PASS,
+        password=DB_PASSWORD,
         dbname=DB_NAME
     )
 
@@ -92,7 +94,7 @@ def process_message(ch, method, properties, body):
 
 
 def main():
-    credentials = pika.PlainCredentials(RABBIT_USER, RABBIT_PASS)
+    credentials = pika.PlainCredentials(RABBIT_USER, RABBIT_PASSWORD)
     parameters = pika.ConnectionParameters(RABBIT_HOST, RABBIT_PORT, '/', credentials)
 
     while True:

@@ -6,6 +6,7 @@ import sys
 import time
 
 import paho.mqtt.client as mqtt
+from paho.mqtt.enums import CallbackAPIVersion
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -65,7 +66,7 @@ def generate_mock_telemetry():
 
 
 def main():
-    client = mqtt.Client(client_id=DEVICE_ID)
+    client = mqtt.Client(CallbackAPIVersion.VERSION2, client_id=DEVICE_ID)
 
     client.on_connect = on_connect
     client.on_message = on_message
