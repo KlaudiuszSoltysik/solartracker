@@ -43,7 +43,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }}/${{ matrix.name }}
+          images: ghcr.io/klaudiuszsoltysik/solartracker/${{ matrix.name }}
           tags: |
             type=sha,format=short
             type=ref,event=branch
