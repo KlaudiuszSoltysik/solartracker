@@ -48,3 +48,11 @@ spec:
       resources:
         requests:
           storage: 512Mi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rabbitmq-plugins
+data:
+  enabled_plugins: |
+    [rabbitmq_management,rabbitmq_mqtt,rabbitmq_prometheus].
