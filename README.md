@@ -1,0 +1,11 @@
+- argo workflows
+- gh actions
+- tests
+- terraform
+- vpn?
+- cloudflare
+- resources
+- prod enviorment + dev edit
+- observability
+- keycloak
+- mobile app

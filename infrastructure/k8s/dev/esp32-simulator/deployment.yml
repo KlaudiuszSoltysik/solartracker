@@ -16,7 +16,7 @@ spec:
       containers:
       - name: esp32-simulator
         image: esp32-simulator:v1
-        imagePullPolicy: Never
+        imagePullPolicy: IfNotPresent
         env:
         - name: DEVICE_ID
           value: "ESP_test"

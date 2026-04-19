@@ -16,7 +16,7 @@ spec:
       containers:
       - name: telemetry-processor
         image: telemetry-processor:v1
-        imagePullPolicy: Never
+        imagePullPolicy: IfNotPresent
         env:
         - name: RABBITMQ_HOST
           value: "rabbitmq"
