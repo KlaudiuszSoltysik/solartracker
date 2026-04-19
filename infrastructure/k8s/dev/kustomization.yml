@@ -8,4 +8,4 @@ resources:
 images:
   - name: backend-api
     newName: backend-api
-    newTag: latest
+    newTag: v1
