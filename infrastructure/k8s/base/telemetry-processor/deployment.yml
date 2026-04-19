@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: telemetry-processor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: telemetry-processor
+  template:
+    metadata:
+      labels:
+        app: telemetry-processor
+    spec:
+      containers:
+      - name: telemetry-processor
+        image: telemetry-processor:v1
+        imagePullPolicy: Never
+        env:
+        - name: RABBITMQ_HOST
+          value: "rabbitmq"
+        - name: DB_HOST
+          value: "timescaledb"
+        - name: DB_USER
+          value: "admin"
+        - name: DB_PASSWORD
+          value: "admin"
+        - name: DB_NAME
+          value: "default_db"
