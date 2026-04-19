@@ -4,8 +4,8 @@ metadata:
   name: solar-forecast
 spec:
   schedule: "* * * * *"
-  successfulJobsHistoryLimit: 3
-  failedJobsHistoryLimit: 3
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
   jobTemplate:
     spec:
       template:

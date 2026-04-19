@@ -4,6 +4,7 @@ metadata:
   name: esp32-simulator
 spec:
   replicas: 1
+  revisionHistoryLimit: 1
   selector:
     matchLabels:
       app: esp32-simulator

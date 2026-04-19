@@ -4,6 +4,7 @@ metadata:
   name: telemetry-processor
 spec:
   replicas: 1
+  revisionHistoryLimit: 1
   selector:
     matchLabels:
       app: telemetry-processor

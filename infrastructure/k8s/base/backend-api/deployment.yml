@@ -4,6 +4,7 @@ metadata:
   name: backend-api
 spec:
   replicas: 1
+  revisionHistoryLimit: 1
   selector:
     matchLabels:
       app: backend-api
