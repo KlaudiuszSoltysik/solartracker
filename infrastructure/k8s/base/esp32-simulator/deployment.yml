@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: esp32-simulator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: esp32-simulator
+  template:
+    metadata:
+      labels:
+        app: esp32-simulator
+    spec:
+      containers:
+      - name: esp32-simulator
+        image: esp32-simulator:v1
+        imagePullPolicy: Never
+        env:
+        - name: RABBITMQ_HOST
+          value: "rabbitmq"

@@ -3,6 +3,7 @@ kind: Kustomization
 
 resources:
   - ../base
+  - ../base/esp32-simulator/deployment.yml
 
 namePrefix: dev-
 

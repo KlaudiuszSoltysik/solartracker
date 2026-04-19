@@ -8,3 +8,4 @@ resources:
   - backend-api/deployment.yml
   - backend-api/ingress.yml
   - telemetry-processor/deployment.yml
+  - mongodb/deployment.yml
