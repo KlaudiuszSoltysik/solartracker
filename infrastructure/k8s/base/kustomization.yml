@@ -3,7 +3,6 @@ kind: Kustomization
 
 resources:
   - timescaledb/deployment.yml
-  - timescaledb/configmap.yml
   - timescaledb/secret.yml
   - rabbitmq/deployment.yml
   - rabbitmq/secret.yml
@@ -16,7 +15,6 @@ resources:
   - observability/prometheus-app.yml
 
   - backend-api/deployment.yml
-  - backend-api/ingress.yml
   - telemetry-processor/deployment.yml
   - solar-forecast/cronjob.yml
   
