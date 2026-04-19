@@ -1,18 +1,9 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: rabbitmq-plugins
-data:
-  enabled_plugins: |
-    [rabbitmq_management,rabbitmq_mqtt,rabbitmq_prometheus].
----
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: rabbitmq
-  labels:
-    app: rabbitmq
 spec:
+  serviceName: "rabbitmq"
   replicas: 1
   selector:
     matchLabels:
@@ -29,47 +20,31 @@ spec:
         - name: RABBITMQ_DEFAULT_USER
           valueFrom:
             secretKeyRef:
-              name: mongodb-creds
+              name: rabbitmq-creds
               key: username
         - name: RABBITMQ_DEFAULT_PASS
           valueFrom:
             secretKeyRef:
-              name: mongodb-creds
+              name: rabbitmq-creds
               key: password
         ports:
         - containerPort: 5672
-        - containerPort: 15672
         - containerPort: 1883
-        - containerPort: 15692
         volumeMounts:
+        - name: rabbit-data
+          mountPath: /var/lib/rabbitmq
         - name: plugins
           mountPath: /etc/rabbitmq/enabled_plugins
           subPath: enabled_plugins
-        resources:
-          requests:
-            cpu: 250m
-            memory: 256Mi
-          limits:
-            cpu: 500m
-            memory: 512Mi
       volumes:
       - name: plugins
         configMap:
           name: rabbitmq-plugins
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: rabbitmq
-spec:
-  selector:
-    app: rabbitmq
-  ports:
-  - name: amqp
-    port: 5672
-  - name: management
-    port: 15672
-  - name: mqtt
-    port: 1883
-  - name: prometheus
-    port: 15692
+  volumeClaimTemplates:
+  - metadata:
+      name: rabbit-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 512Mi

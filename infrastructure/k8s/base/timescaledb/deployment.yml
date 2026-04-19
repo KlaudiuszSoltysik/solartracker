@@ -1,10 +1,11 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: timescaledb
   labels:
     app: timescaledb
 spec:
+  serviceName: "timescaledb"
   replicas: 1
   selector:
     matchLabels:
@@ -35,6 +36,8 @@ spec:
         volumeMounts:
         - name: init-scripts
           mountPath: /docker-entrypoint-initdb.d/
+        - name: timescaledb-data
+          mountPath: /var/lib/postgresql/data 
         resources:
           requests:
             cpu: 250m
@@ -46,6 +49,15 @@ spec:
       - name: init-scripts
         configMap:
           name: timescaledb-init-scripts
+  
+  volumeClaimTemplates:
+  - metadata:
+      name: timescaledb-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 2Gi
 ---
 apiVersion: v1
 kind: Service

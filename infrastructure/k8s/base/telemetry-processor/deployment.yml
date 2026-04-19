@@ -28,12 +28,12 @@ spec:
         - name: RABBITMQ_USERNAME
           valueFrom:
             secretKeyRef:
-              name: timescaledb-creds
+              name: rabbitmq-creds
               key: username
         - name: RABBITMQ_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: timescaledb-creds
+              name: rabbitmq-creds
               key: password
         - name: POSTGRES_HOST
           value: "timescaledb"
