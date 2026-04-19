@@ -100,7 +100,7 @@ def main():
 
     while True:
         try:
-            logger.info("Connecting to RABBITMQMQ...")
+            logger.info("Connecting to RABBITMQ...")
             connection = pika.BlockingConnection(parameters)
             channel = connection.channel()
 
