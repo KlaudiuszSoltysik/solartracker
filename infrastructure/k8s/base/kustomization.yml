@@ -11,7 +11,10 @@ resources:
   - mongodb/secret.yml
 
   - ghcr-secret.yml
-  
+
+  - observability/loki-app.yml
+  - observability/prometheus-app.yml
+
   - backend-api/deployment.yml
   - backend-api/ingress.yml
   - telemetry-processor/deployment.yml
