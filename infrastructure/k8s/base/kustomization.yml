@@ -7,9 +7,11 @@ resources:
   - timescaledb/secret.yml
   - rabbitmq/deployment.yml
   - rabbitmq/secret.yml
+  - mongodb/deployment.yml
+  - mongodb/secret.yml
+  
   - backend-api/deployment.yml
   - backend-api/ingress.yml
   - telemetry-processor/deployment.yml
-  - mongodb/deployment.yml
-  - mongodb/secret.yml
+  - solar-forecast/cronjob.yml
   

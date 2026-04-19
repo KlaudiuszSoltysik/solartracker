@@ -39,12 +39,12 @@ spec:
             - name: MONGODB_USER
               valueFrom:
                 secretKeyRef:
-                  name: rabbitmq-creds
+                  name: mongodb-creds
                   key: username
             - name: MONGODB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: rabbitmq-creds
+                  name: mongodb-creds
                   key: password
             - name: MONGODB_DB
               value: "default_db"
