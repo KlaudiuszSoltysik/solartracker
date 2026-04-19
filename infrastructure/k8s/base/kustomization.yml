@@ -13,6 +13,7 @@ resources:
 
   - observability/loki-app.yml
   - observability/prometheus-app.yml
+  - observability/secret.yml
 
   - backend-api/deployment.yml
   - telemetry-processor/deployment.yml

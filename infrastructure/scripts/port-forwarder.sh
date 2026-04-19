@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🔌 Uruchamianie tuneli (Port-Forwarding) dla SolarTracker..."
+echo "🔌 Port-Forwarding..."
 echo "========================================================"
 
 cleanup() {

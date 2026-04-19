@@ -29,17 +29,11 @@ spec:
               type: loki
               url: http://loki-stack.observability:3100
               access: proxy
-
-          adminPassword: "" 
           
-          envFromSecret: "grafana-creds"
-          
-          env:
-            GF_SECURITY_ADMIN_PASSWORD:
-              valueFrom:
-                secretKeyRef:
-                  name: grafana-creds
-                  key: password
+          admin:
+            existingSecret: "grafana-creds"
+            userKey: username
+            passwordKey: password
   destination:
     server: "https://kubernetes.default.svc"
     namespace: observability
