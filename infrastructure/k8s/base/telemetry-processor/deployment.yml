@@ -19,11 +19,29 @@ spec:
         env:
         - name: RABBITMQ_HOST
           value: "rabbitmq"
-        - name: DB_HOST
+        - name: RABBIT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: timescaledb-creds
+              key: username
+        - name: RABBIT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: timescaledb-creds
+              key: password
+        - name: POSTGRES_HOST
           value: "timescaledb"
-        - name: DB_USER
-          value: "admin"
-        - name: DB_PASSWORD
-          value: "admin"
-        - name: DB_NAME
+        - name: POSTGRES_PORT
+          value: "5432"
+        - name: POSTGRES_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: timescaledb-creds
+              key: username
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: timescaledb-creds
+              key: password
+        - name: POSTGRES_DB
           value: "default_db"

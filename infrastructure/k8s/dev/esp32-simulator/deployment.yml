@@ -17,5 +17,11 @@ spec:
         image: esp32-simulator:v1
         imagePullPolicy: Never
         env:
-        - name: RABBITMQ_HOST
+        - name: DEVICE_ID
+          value: "ESP_test"
+        - name: MQTT_BROKER
           value: "rabbitmq"
+        - name: MQTT_PORT
+          value: "1883"
+        - name: SEND_INTERVAL
+          value: "30"

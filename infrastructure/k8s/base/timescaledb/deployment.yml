@@ -19,9 +19,15 @@ spec:
         image: timescale/timescaledb:latest-pg16
         env:
         - name: POSTGRES_USER
-          value: "admin"
+          valueFrom:
+            secretKeyRef:
+              name: timescaledb-creds
+              key: username
         - name: POSTGRES_PASSWORD
-          value: "admin"
+          valueFrom:
+            secretKeyRef:
+              name: timescaledb-creds
+              key: password
         - name: POSTGRES_DB
           value: "default_db"
         ports:

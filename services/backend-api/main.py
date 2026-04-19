@@ -19,21 +19,21 @@ logging.basicConfig(
 logger = logging.getLogger("fastapi")
 logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
 
-DB_HOST = os.environ.get("DB_HOST", "localhost")
-DB_PORT = os.environ.get("DB_PORT", "5432")
-DB_USER = os.environ.get("DB_USER", "admin")
-DB_PASSWORD = os.environ.get("DB_PASSWORD", "admin")
-DB_NAME = os.environ.get("DB_NAME", "default_db")
+POSTGRES_HOST = os.environ.get("POSTGRES_HOST", "localhost")
+POSTGRES_PORT = os.environ.get("POSTGRES_PORT", "5432")
+POSTGRES_USERNAME = os.environ.get("POSTGRES_USERNAME", "admin")
+POSTGRES_PASSWORD = os.environ.get("POSTGRES_PASSWORD", "admin")
+POSTGRES_NAME = os.environ.get("POSTGRES_NAME", "default_db")
 
 
 def get_db_connection():
     try:
         conn = psycopg2.connect(
-            host=DB_HOST,
-            port=DB_PORT,
-            user=DB_USER,
-            password=DB_PASSWORD,
-            dbname=DB_NAME,
+            host=POSTGRES_HOST,
+            port=POSTGRES_PORT,
+            user=POSTGRES_USERNAME,
+            password=POSTGRES_PASSWORD,
+            dbname=POSTGRES_NAME,
             cursor_factory=RealDictCursor
         )
         return conn

@@ -15,22 +15,36 @@ spec:
             image: solar-forecast:v1
             imagePullPolicy: IfNotPresent
             env:
-            - name: DB_HOST
+            - name: POSTGRES_HOST
               value: "timescaledb"
-            - name: DB_USER
-              value: "postgres"
-            - name: DB_PASSWORD
-              value: "admin"
-            - name: DB_NAME
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: timescaledb-creds
+                  key: username
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: timescaledb-creds
+                  key: password
+            - name: POSTGRES_DB
               value: "default_db"
-            - name: MONGO_HOST
+            - name: MONGODB_HOST
               value: "mongodb"
-            - name: MONGO_PORT
+            - name: MONGODB_PORT
               value: "27017"
-            - name: MONGO_USER
-              value: "admin"
-            - name: MONGO_PASSWORD
-              value: "admin"
-            - name: MONGO_DB
+            - name: MONGODB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-creds
+                  key: username
+            - name: MONGODB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-creds
+                  key: password
+            - name: MONGODB_DB
               value: "default_db"
           restartPolicy: OnFailure

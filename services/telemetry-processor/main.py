@@ -22,25 +22,25 @@ logging.getLogger("pika").setLevel(logging.WARNING)
 
 logger = logging.getLogger("telemetry_processor")
 
-RABBIT_HOST = os.environ.get("RABBIT_HOST", "localhost")
-RABBIT_PORT = int(os.environ.get("RABBIT_PORT", "5672"))
-RABBIT_USER = os.environ.get("RABBIT_USER", "admin")
-RABBIT_PASSWORD = os.environ.get("RABBIT_PASSWORD", "admin")
+RABBITMQ_HOST = os.environ.get("RABBITMQ_HOST", "localhost")
+RABBITMQ_PORT = int(os.environ.get("RABBITMQ_PORT", "5672"))
+RABBITMQ_USERNAME = os.environ.get("RABBITMQ_USERNAME", "admin")
+RABBITMQ_PASSWORD = os.environ.get("RABBITMQ_PASSWORD", "admin")
 
-DB_HOST = os.environ.get("DB_HOST", "localhost")
-DB_PORT = os.environ.get("DB_PORT", "5432")
-DB_USER = os.environ.get("DB_USER", "admin")
-DB_PASSWORD = os.environ.get("DB_PASSWORD", "admin")
-DB_NAME = os.environ.get("DB_NAME", "default_db")
+POSTGRES_HOST = os.environ.get("POSTGRES_HOST", "localhost")
+POSTGRES_PORT = os.environ.get("POSTGRES_PORT", "5432")
+POSTGRES_USERNAME = os.environ.get("POSTGRES_USERNAME", "admin")
+POSTGRES_PASSWORD = os.environ.get("POSTGRES_PASSWORD", "admin")
+POSTGRES_NAME = os.environ.get("POSTGRES_NAME", "default_db")
 
 
 def get_db_connection():
     return psycopg2.connect(
-        host=DB_HOST,
-        port=DB_PORT,
-        user=DB_USER,
-        password=DB_PASSWORD,
-        dbname=DB_NAME
+        host=POSTGRES_HOST,
+        port=POSTGRES_PORT,
+        user=POSTGRES_USERNAME,
+        password=POSTGRES_PASSWORD,
+        dbname=POSTGRES_NAME
     )
 
 
@@ -94,12 +94,12 @@ def process_message(ch, method, properties, body):
 
 
 def main():
-    credentials = pika.PlainCredentials(RABBIT_USER, RABBIT_PASSWORD)
-    parameters = pika.ConnectionParameters(RABBIT_HOST, RABBIT_PORT, '/', credentials)
+    credentials = pika.PlainCredentials(RABBITMQ_USERNAME, RABBITMQ_PASSWORD)
+    parameters = pika.ConnectionParameters(RABBITMQ_HOST, RABBITMQ_PORT, '/', credentials)
 
     while True:
         try:
-            logger.info("Connecting to RabbitMQ...")
+            logger.info("Connecting to RABBITMQMQ...")
             connection = pika.BlockingConnection(parameters)
             channel = connection.channel()
 
@@ -113,7 +113,7 @@ def main():
             channel.start_consuming()
 
         except pika.exceptions.AMQPConnectionError as e:
-            logger.warning(f"RabbitMQ connection lost: {e}. Retrying in 5 seconds...")
+            logger.warning(f"RABBITMQMQ connection lost: {e}. Retrying in 5 seconds...")
             time.sleep(5)
             continue
 

@@ -4,8 +4,12 @@ kind: Kustomization
 resources:
   - timescaledb/deployment.yml
   - timescaledb/configmap.yml
+  - timescaledb/secret.yml
   - rabbitmq/deployment.yml
+  - rabbitmq/secret.yml
   - backend-api/deployment.yml
   - backend-api/ingress.yml
   - telemetry-processor/deployment.yml
   - mongodb/deployment.yml
+  - mongodb/secret.yml
+  

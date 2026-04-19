@@ -27,9 +27,15 @@ spec:
         image: rabbitmq:4-management-alpine
         env:
         - name: RABBITMQ_DEFAULT_USER
-          value: "admin"
+          valueFrom:
+            secretKeyRef:
+              name: mongodb-creds
+              key: username
         - name: RABBITMQ_DEFAULT_PASS
-          value: "admin"
+          valueFrom:
+            secretKeyRef:
+              name: mongodb-creds
+              key: password
         ports:
         - containerPort: 5672
         - containerPort: 15672
