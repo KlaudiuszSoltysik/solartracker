@@ -10,7 +10,7 @@ resources:
   - mongodb/deployment.yml
   - mongodb/secret.yml
 
-  - ghcr-secret.yaml
+  - ghcr-secret.yml
   
   - backend-api/deployment.yml
   - backend-api/ingress.yml
