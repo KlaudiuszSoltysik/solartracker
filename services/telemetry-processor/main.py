@@ -3,6 +3,7 @@ import logging
 import os
 import sys
 import time
+import socket
 from datetime import datetime
 
 import pika
@@ -31,7 +32,7 @@ POSTGRES_HOST = os.environ.get("POSTGRES_HOST", "localhost")
 POSTGRES_PORT = os.environ.get("POSTGRES_PORT", "5432")
 POSTGRES_USERNAME = os.environ.get("POSTGRES_USERNAME", "admin")
 POSTGRES_PASSWORD = os.environ.get("POSTGRES_PASSWORD", "admin")
-POSTGRES_NAME = os.environ.get("POSTGRES_NAME", "default_db")
+POSTGRES_DB = os.environ.get("POSTGRES_DB", "default_db")
 
 
 def get_db_connection():
@@ -40,7 +41,7 @@ def get_db_connection():
         port=POSTGRES_PORT,
         user=POSTGRES_USERNAME,
         password=POSTGRES_PASSWORD,
-        dbname=POSTGRES_NAME
+        dbname=POSTGRES_DB
     )
 
 
@@ -112,10 +113,9 @@ def main():
 
             channel.start_consuming()
 
-        except pika.exceptions.AMQPConnectionError as e:
-            logger.warning(f"RABBITMQMQ connection lost: {e}. Retrying in 5 seconds...")
+        except Exception as e:
+            logger.warning(f"RABBITMQ connection lost: {e}. Retrying in 5 seconds...")
             time.sleep(5)
-            continue
 
 
 if __name__ == "__main__":
