@@ -13,6 +13,8 @@ spec:
         app: backend-api
     spec:
       enableServiceLinks: false
+      imagePullSecrets:
+      - name: ghcr-secret
       containers:
       - name: backend-api
         image: backend-api:v1

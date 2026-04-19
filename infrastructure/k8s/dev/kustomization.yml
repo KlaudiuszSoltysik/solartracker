@@ -7,5 +7,14 @@ resources:
 
 images:
   - name: backend-api
-    newName: backend-api
-    newTag: v1
+    newName: ghcr.io/KlaudiuszSoltysik/solartracker/backend-api
+    newTag: master
+  - name: telemetry-processor
+    newName: ghcr.io/KlaudiuszSoltysik/solartracker/telemetry-processor
+    newTag: master
+  - name: esp32-simulator
+    newName: ghcr.io/KlaudiuszSoltysik/solartracker/esp32-simulator
+    newTag: master
+  - name: solar-forecast
+    newName: ghcr.io/KlaudiuszSoltysik/solartracker/solar-forecast
+    newTag: master

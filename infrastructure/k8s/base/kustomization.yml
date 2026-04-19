@@ -9,6 +9,8 @@ resources:
   - rabbitmq/secret.yml
   - mongodb/deployment.yml
   - mongodb/secret.yml
+
+  - ghcr-secret.yaml
   
   - backend-api/deployment.yml
   - backend-api/ingress.yml

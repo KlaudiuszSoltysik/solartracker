@@ -1,5 +1,4 @@
 - argo workflows
-- gh actions
 - tests
 - terraform
 - vpn?

@@ -13,6 +13,8 @@ spec:
         app: esp32-simulator
     spec:
       enableServiceLinks: false
+      imagePullSecrets:
+      - name: ghcr-secret
       containers:
       - name: esp32-simulator
         image: esp32-simulator:v1

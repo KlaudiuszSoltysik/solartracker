@@ -13,6 +13,8 @@ spec:
         app: telemetry-processor
     spec:
       enableServiceLinks: false
+      imagePullSecrets:
+      - name: ghcr-secret
       containers:
       - name: telemetry-processor
         image: telemetry-processor:v1
