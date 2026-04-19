@@ -12,6 +12,7 @@ spec:
       labels:
         app: esp32-simulator
     spec:
+      enableServiceLinks: false
       containers:
       - name: esp32-simulator
         image: esp32-simulator:v1
@@ -25,3 +26,13 @@ spec:
           value: "1883"
         - name: SEND_INTERVAL
           value: "30"
+        - name: RABBITMQ_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: timescaledb-creds
+              key: username
+        - name: RABBITMQ_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: timescaledb-creds
+              key: password

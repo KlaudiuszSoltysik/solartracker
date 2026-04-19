@@ -12,6 +12,7 @@ spec:
       labels:
         app: backend-api
     spec:
+      enableServiceLinks: false
       containers:
       - name: backend-api
         image: backend-api:v1

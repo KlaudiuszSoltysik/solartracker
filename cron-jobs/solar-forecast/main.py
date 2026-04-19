@@ -11,24 +11,25 @@ from pymongo import MongoClient
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("solar-forecast")
 
-DB_HOST = os.environ.get("DB_HOST", "localhost")
-DB_USER = os.environ.get("DB_USER", "admin")
-DB_PASSWORD = os.environ.get("DB_PASSWORD", "admin")
-DB_NAME = os.environ.get("DB_NAME", "default_db")
+POSTGRES_HOST = os.environ.get("POSTGRES_HOST", "localhost")
+POSTGRES_PORT = os.environ.get("POSTGRES_PORT", "5432")
+POSTGRES_USERNAME = os.environ.get("POSTGRES_USERNAME", "admin")
+POSTGRES_PASSWORD = os.environ.get("POSTGRES_PASSWORD", "admin")
+POSTGRES_NAME = os.environ.get("POSTGRES_NAME", "default_db")
 
-MONGO_HOST = os.environ.get("MONGO_HOST", "localhost")
-MONGO_PORT = os.environ.get("MONGO_PORT", "27017")
-MONGO_USER = os.environ.get("MONGO_USER", "admin")
-MONGO_PASSWORD = os.environ.get("MONGO_PASSWORD", "admin")
-MONGO_DB = os.environ.get("MONGO_DB", "default_db")
+MONGODB_HOST = os.environ.get("MONGODB_HOST", "localhost")
+MONGODB_PORT = os.environ.get("MONGODB_PORT", "27017")
+MONGODB_USERNAME = os.environ.get("MONGODB_USERNAME", "admin")
+MONGODB_PASSWORD = os.environ.get("MONGODB_PASSWORD", "admin")
+MONGODB_DB = os.environ.get("MONGODB_DB", "default_db")
 
 
 def get_mongo_assets():
-    mongo_uri = f"mongodb://{MONGO_USER}:{MONGO_PASSWORD}@{MONGO_HOST}:{MONGO_PORT}/?authSource=admin"
+    mongo_uri = f"mongodb://{MONGODB_USERNAME}:{MONGODB_PASSWORD}@{MONGODB_HOST}:{MONGODB_PORT}/?authSource=admin"
 
     try:
         client = MongoClient(mongo_uri, serverSelectionTimeoutMS=5000)
-        db = client[MONGO_DB]
+        db = client[MONGODB_DB]
         collection = db['assets_pv']
 
         assets = list(collection.find({}))
@@ -77,11 +78,11 @@ def main():
     for farm in pv_assets:
         try:
             device_id = farm["device_id"]
-            max_power = farm["max_power_w"]
+            max_power_w = farm["max_power_w"]
             lat = farm["lat"]
             lon = farm["lon"]
-            gamma = farm["gamma_pdc"]
-            ref = farm["temp_ref"]
+            gamma_pdc = farm["gamma_pdc"]
+            temp_ref = farm["temp_ref"]
 
             logger.info(f"Processing farm: {farm['farm_name']}")
 
@@ -107,7 +108,7 @@ def main():
                 if irradiance is None or temp is None:
                     continue
 
-                forecasted_power = calculate_power(irradiance, temp, max_power, gamma, ref)
+                forecasted_power = calculate_power(irradiance, temp, max_power_w, gamma_pdc, temp_ref)
 
                 forecasts_to_insert.append(
                     (dt_time, device_id, forecasted_power, irradiance, temp, current_time))
@@ -119,7 +120,7 @@ def main():
         return
 
     try:
-        conn = psycopg2.connect(host=DB_HOST, user=DB_USER, password=DB_PASSWORD, dbname=DB_NAME)
+        conn = psycopg2.connect(host=POSTGRES_HOST, port=POSTGRES_PORT, user=POSTGRES_USERNAME, password=POSTGRES_PASSWORD, dbname=POSTGRES_NAME)
         cursor = conn.cursor()
 
         query = """

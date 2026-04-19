@@ -12,6 +12,7 @@ spec:
       labels:
         app: telemetry-processor
     spec:
+      enableServiceLinks: false
       containers:
       - name: telemetry-processor
         image: telemetry-processor:v1
@@ -19,12 +20,14 @@ spec:
         env:
         - name: RABBITMQ_HOST
           value: "rabbitmq"
-        - name: RABBIT_USERNAME
+        - name: RABBITMQ_PORT
+          value: "5672"
+        - name: RABBITMQ_USERNAME
           valueFrom:
             secretKeyRef:
               name: timescaledb-creds
               key: username
-        - name: RABBIT_PASSWORD
+        - name: RABBITMQ_PASSWORD
           valueFrom:
             secretKeyRef:
               name: timescaledb-creds

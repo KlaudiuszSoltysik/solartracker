@@ -22,6 +22,8 @@ DEVICE_ID = os.environ.get("DEVICE_ID", "ESP_test")
 BROKER = os.environ.get("MQTT_BROKER", "localhost")
 PORT = int(os.environ.get("MQTT_PORT", "1883"))
 FREQ = int(os.environ.get("SEND_INTERVAL", "30"))
+RABBITMQ_USERNAME = os.environ.get("RABBITMQ_USERNAME", "admin")
+RABBITMQ_PASSWORD = os.environ.get("RABBITMQ_PASSWORD", "admin")
 
 logger = logging.getLogger(f"{DEVICE_ID}")
 
@@ -67,7 +69,7 @@ def generate_mock_telemetry():
 
 def main():
     client = mqtt.Client(CallbackAPIVersion.VERSION2, client_id=DEVICE_ID)
-
+    client.username_pw_set(RABBITMQ_USERNAME, RABBITMQ_PASSWORD)
     client.on_connect = on_connect
     client.on_message = on_message
 
