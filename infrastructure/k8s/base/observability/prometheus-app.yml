@@ -16,7 +16,30 @@ spec:
             scrapeInterval: "30s"
             retention: "48h"
         grafana:
-          adminPassword: "admin"
+          sidecar:
+            datasources:
+              enabled: true
+          additionalDataSources:
+            - name: Prometheus
+              type: prometheus
+              url: http://prometheus-stack-kube-prom-prometheus.observability:9090
+              access: proxy
+              isDefault: true
+            - name: Loki
+              type: loki
+              url: http://loki-stack.observability:3100
+              access: proxy
+
+          adminPassword: "" 
+          
+          envFromSecret: "grafana-creds"
+          
+          env:
+            GF_SECURITY_ADMIN_PASSWORD:
+              valueFrom:
+                secretKeyRef:
+                  name: grafana-creds
+                  key: password
   destination:
     server: "https://kubernetes.default.svc"
     namespace: observability
