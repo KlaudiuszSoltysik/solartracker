@@ -5,7 +5,7 @@ from pathlib import Path
 import requests
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
-MODEL = "llama3"
+MODEL = "llama3.2"
 IGNORE_EXTENSIONS = {'.png', '.jpg', '.jpeg', '.lock', '.pyc', '.exe', '.toml', '.json', '.txt'}
 IGNORE_FILES = {'Dockerfile', '.gitignore', 'secret.yml', 'install.yaml', 'ghcr-secret.yml', 'TODO.md'}
 
@@ -40,8 +40,7 @@ def call_ollama(prompt):
             "prompt": prompt,
             "stream": False,
             "options": {
-                "temperature": 0.1,
-                "num_predict": 300
+                "temperature": 0.1
             }
         })
         print("Done!")

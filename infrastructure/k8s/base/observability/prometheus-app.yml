@@ -24,6 +24,7 @@ spec:
               type: loki
               url: http://loki-stack.observability:3100
               access: proxy
+              isDefault: false
           
           admin:
             existingSecret: "grafana-creds"
