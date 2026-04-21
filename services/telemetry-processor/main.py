@@ -11,17 +11,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s [%(levelname)s] [%(name)s] %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S',
-    handlers=[logging.StreamHandler(sys.stdout)]
-)
-
-logging.getLogger("pika").setLevel(logging.WARNING)
-
-logger = logging.getLogger("telemetry_processor")
-
 RABBITMQ_HOST = os.environ.get("RABBITMQ_HOST", "localhost")
 RABBITMQ_PORT = int(os.environ.get("RABBITMQ_PORT", "5672"))
 RABBITMQ_USERNAME = os.environ.get("RABBITMQ_USERNAME", "admin")
@@ -32,6 +21,17 @@ POSTGRES_PORT = os.environ.get("POSTGRES_PORT", "5432")
 POSTGRES_USERNAME = os.environ.get("POSTGRES_USERNAME", "admin")
 POSTGRES_PASSWORD = os.environ.get("POSTGRES_PASSWORD", "admin")
 POSTGRES_DB = os.environ.get("POSTGRES_DB", "default_db")
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] [%(name)s] %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
+    handlers=[logging.StreamHandler(sys.stdout)]
+)
+
+logger = logging.getLogger("telemetry_processor")
+
+logging.getLogger("pika").setLevel(logging.WARNING)
 
 
 def get_db_connection():

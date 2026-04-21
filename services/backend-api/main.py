@@ -11,19 +11,21 @@ from psycopg2.extras import RealDictCursor
 
 load_dotenv()
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S"
-)
-logger = logging.getLogger("fastapi")
-logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
-
 POSTGRES_HOST = os.environ.get("POSTGRES_HOST", "localhost")
 POSTGRES_PORT = os.environ.get("POSTGRES_PORT", "5432")
 POSTGRES_USERNAME = os.environ.get("POSTGRES_USERNAME", "admin")
 POSTGRES_PASSWORD = os.environ.get("POSTGRES_PASSWORD", "admin")
 POSTGRES_NAME = os.environ.get("POSTGRES_NAME", "default_db")
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S"
+)
+
+logger = logging.getLogger("backend-api")
+
+logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
 
 
 def get_db_connection():

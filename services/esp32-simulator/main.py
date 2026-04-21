@@ -6,17 +6,10 @@ import sys
 import time
 
 import paho.mqtt.client as mqtt
-from paho.mqtt.enums import CallbackAPIVersion
 from dotenv import load_dotenv
+from paho.mqtt.enums import CallbackAPIVersion
 
 load_dotenv()
-
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s [%(levelname)s] [%(name)s] %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S',
-    handlers=[logging.StreamHandler(sys.stdout)]
-)
 
 DEVICE_ID = os.environ.get("DEVICE_ID", "ESP_test")
 BROKER = os.environ.get("MQTT_BROKER", "localhost")
@@ -24,6 +17,13 @@ PORT = int(os.environ.get("MQTT_PORT", "1883"))
 FREQ = int(os.environ.get("SEND_INTERVAL", "30"))
 RABBITMQ_USERNAME = os.environ.get("RABBITMQ_USERNAME", "admin")
 RABBITMQ_PASSWORD = os.environ.get("RABBITMQ_PASSWORD", "admin")
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] [%(name)s] %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
+    handlers=[logging.StreamHandler(sys.stdout)]
+)
 
 logger = logging.getLogger(f"{DEVICE_ID}")
 

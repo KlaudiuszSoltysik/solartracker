@@ -1,0 +1,21 @@
+yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../base
+  - esp32-simulator/deployment.yml
+
+images:
+  - name: backend-api
+    newName: ghcr.io/klaudiuszsoltysik/solartracker/backend-api
+    newTag: master
+  - name: telemetry-processor
+    newName: ghcr.io/klaudiuszsoltysik/solartracker/telemetry-processor
+    newTag: master
+  - name: esp32-simulator
+    newName: ghcr.io/klaudiuszsoltysik/solartracker/esp32-simulator
+    newTag: master
+  - name: solar-forecast
+    newName: ghcr.io/klaudiuszsoltysik/solartracker/solar-forecast
+    newTag: master

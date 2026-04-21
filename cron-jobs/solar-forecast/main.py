@@ -5,11 +5,11 @@ from datetime import datetime, timezone, timedelta
 import psycopg2
 import pvlib
 import requests
+from dotenv import load_dotenv
 from psycopg2.extras import execute_values
 from pymongo import MongoClient
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
-logger = logging.getLogger("solar-forecast")
+load_dotenv()
 
 POSTGRES_HOST = os.environ.get("POSTGRES_HOST", "localhost")
 POSTGRES_PORT = os.environ.get("POSTGRES_PORT", "5432")
@@ -22,6 +22,14 @@ MONGODB_PORT = os.environ.get("MONGODB_PORT", "27017")
 MONGODB_USERNAME = os.environ.get("MONGODB_USERNAME", "admin")
 MONGODB_PASSWORD = os.environ.get("MONGODB_PASSWORD", "admin")
 MONGODB_DB = os.environ.get("MONGODB_DB", "default_db")
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S"
+)
+
+logger = logging.getLogger("solar-forecast")
 
 
 def get_mongo_assets():
@@ -120,7 +128,8 @@ def main():
         return
 
     try:
-        conn = psycopg2.connect(host=POSTGRES_HOST, port=POSTGRES_PORT, user=POSTGRES_USERNAME, password=POSTGRES_PASSWORD, dbname=POSTGRES_NAME)
+        conn = psycopg2.connect(host=POSTGRES_HOST, port=POSTGRES_PORT, user=POSTGRES_USERNAME,
+                                password=POSTGRES_PASSWORD, dbname=POSTGRES_NAME)
         cursor = conn.cursor()
 
         query = """
