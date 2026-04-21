@@ -17,19 +17,9 @@ spec:
       - name: runner
         image: myoung34/github-runner:ubuntu-jammy
         env:
-        - name: OLLAMA_URL
-          value: "http://ollama-service.ai-agent.svc.cluster.local:11434"
-        - name: MODEL
-          value: "qwen2.5:0.5b"
-        - name: IGNORE_EXTENSIONS
-          value: ".png,.jpg,.jpeg,.lock,.pyc,.exe,.toml,.json,.txt"
-        - name: IGNORE_FILES
-          value: "Dockerfile,.gitignore,secret.yml,install.yaml,ghcr-secret.yml,TODO.md"
-        - name: ROOT_DIR
-          value: "."
         - name: REPO_URL
           value: "https://github.com/klaudiuszsoltysik/solartracker"
-        - name: RUNNER_TOKEN
+        - name: ACCESS_TOKEN
           valueFrom:
             secretKeyRef:
               name: ai-agent-creds

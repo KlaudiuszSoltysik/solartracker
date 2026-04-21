@@ -1,0 +1,57 @@
+name: AI Documentation Update
+
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - '**/README.md'
+
+concurrency:
+  group: ai-readme-update-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  update-readme:
+    runs-on: k8s-ai-agent
+
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install requests python-dotenv
+          sudo apt-get update && sudo apt-get install -y eza
+
+      - name: Run AI Agent
+        env:
+          OLLAMA_URL: "http://ollama-service.ai-agent.svc.cluster.local:11434"
+          MODEL: "qwen2.5:0.5b"
+          ROOT_DIR: "."
+          IGNORE_EXTENSIONS: ".png,.jpg,.jpeg,.lock,.pyc,.exe,.toml,.json,.txt"
+          IGNORE_FILES: "Dockerfile,.gitignore,secret.yml,install.yaml,ghcr-secret.yml,TODO.md"
+        run: python infrastructure/ai_agent/readme_writer.py
+
+      - name: Commit and Push changes
+        run: |
+          if [ -n "$(git status --porcelain '**/README.md')" ]; then
+            git config --local user.email "ai-agent@solartracker.local"
+            git config --local user.name "AI Agent"
+            git add '**/README.md'
+            git commit -m "docs: AI auto-update README [skip ci]"
+            git push
+          else
+            echo "No documentation changes detected."
+          fi

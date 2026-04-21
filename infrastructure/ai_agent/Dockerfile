@@ -26,4 +26,4 @@ USER appuser
 
 RUN git config --global --add safe.directory '*'
 
-CMD ["python", "readme_writer.py"]
+CMD ["python", "main.py"]

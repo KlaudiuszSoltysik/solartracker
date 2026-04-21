@@ -119,7 +119,7 @@ def generate_module_readme(scope_path, files):
     return call_ollama(prompt)
 
 
-def process_repo():
+def main():
     logger.info("Starting work!")
 
     all_files = get_valid_files(ROOT_DIR)
@@ -156,7 +156,8 @@ def process_repo():
                 f.write(cleaned_content)
             logger.info("Saved!")
 
+    logger.info("Work is done!")
+
 
 if __name__ == "__main__":
-    process_repo()
-    logger.info("Work is done!")
+    main()
