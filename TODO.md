@@ -1,6 +1,5 @@
 - argo workflows
 - argo events
-- tests
 - terraform
 - vpn?
 - cloudflare
