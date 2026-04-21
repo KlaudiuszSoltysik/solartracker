@@ -26,6 +26,9 @@ echo "🦑 ArgoCD:          http://localhost:8080"
 kubectl port-forward svc/prometheus-stack-grafana -n observability 3000:80 > /dev/null 2>&1 &
 echo "📊 Grafana:         http://localhost:3000"
 
+kubectl port-forward svc/ollama-service 11434:11434 > /dev/null 2>&1 &
+echo "🤖 Ollama:          http://localhost:11434"
+
 kubectl port-forward svc/backend-api 8000:8000 > /dev/null 2>&1 &
 echo "⚙️ Backend API:     http://localhost:8000/docs"
 
