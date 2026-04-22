@@ -3,7 +3,6 @@ terraform {
     secret_suffix = "cloudflare-tfstate"
     namespace     = "infrastructure"
   }
-
   required_providers {
     cloudflare = {
       source  = "cloudflare/cloudflare"

@@ -3,6 +3,7 @@
 ## Faza 1: Ekspozycja i Infrastruktura
 - [ ] **Terraform:** Zakodowanie konfiguracji klastra jako Infrastructure as Code.
 - [ ] **Grafana:** Dashboardy.
+- [ ] **GH Actions:** Poprawa budowania obrazów żeby budowało tylko jak coś się zmieni.
 
 ## Faza 2: Optymalizacja K8s
 - [ ] **Resource Limits & Requests:** Konfiguracja limitów i requestów CPU i RAM dla każdego namespace'u (zapobieganie OOMKillom i zagłodzeniu usług).
