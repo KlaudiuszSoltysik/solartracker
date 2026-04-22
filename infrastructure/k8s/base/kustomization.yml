@@ -15,12 +15,16 @@ resources:
   - observability/prometheus-app.yml
   - observability/secret.yml
 
-  - ai-agent/deployment.yml
   - ai-agent/github-runner.yml
   - ai-agent/ollama.yml
+  - ai-agent/rbac.yml
   - ai-agent/secret.yml
 
   - cloudflared/deployment.yml
+
+  - github-runner/deployment.yml
+  - github-runner/rbac.yml
+  - github-runner/secret.yml
 
   - backend-api/deployment.yml
   - telemetry-processor/deployment.yml

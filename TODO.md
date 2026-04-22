@@ -1,13 +1,11 @@
 # 🗺️ SolarTracker: Rozwój Architektury
 
 ## Faza 1: Ekspozycja i Infrastruktura
-- [ ] **Terraform:** Zakodowanie konfiguracji klastra jako Infrastructure as Code.
 - [ ] **Grafana:** Dashboardy.
 - [ ] **GH Actions:** Poprawa budowania obrazów żeby budowało tylko jak coś się zmieni.
 
 ## Faza 2: Optymalizacja K8s
 - [ ] **Resource Limits & Requests:** Konfiguracja limitów i requestów CPU i RAM dla każdego namespace'u (zapobieganie OOMKillom i zagłodzeniu usług).
-- [ ] **GPU Node Affinity:** Wydzielenie osobnego węzła (Node) dla ciężkich zadań AI. Ustawienie `nodeSelector` i `tolerations` dla Agenta.
 
 ## Faza 3: Bezpieczeństwo i IoT
 - [ ] **VPN (OpenVPN):** Postawienie serwera VPN w klastrze. Podłączenie fizycznych układów ESP32 do prywatnej sieci K8s z ominięciem publicznego Wi-Fi.
@@ -21,11 +19,13 @@
 - [ ] **Mobile App:** Napisanie aplikacji klienckiej konsumującej API. Integracja logowania przez Keycloak.
 
 # Usefull commands:
-kubectl create secret generic cloudflared-creds \
-  --from-literal=cloudflared-token=token \
+kubectl create secret generic github-runner-creds \
+  --from-literal=github-token= \
   -n infrastructure \
   --dry-run=client -o yaml > raw-secret.yml
 
-kubeseal --cert mycert.pem --format=yaml < raw-secret.yml > infrastructure/k8s/base/cloudflared/secret.yml
+kubeseal --cert mycert.pem --format=yaml < raw-secret.yml > infrastructure/k8s/base/github-runner/secret.yml
 
 rm raw-secret.yml
+
+kubectl get secret ai-agent-creds -n ai-agent -o jsonpath="{.data.github-token}" | base64 --decode ; echo

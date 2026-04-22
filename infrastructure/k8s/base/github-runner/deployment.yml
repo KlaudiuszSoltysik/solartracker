@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: github-runner
+  namespace: infrastructure
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: github-runner
+  template:
+    metadata:
+      labels:
+        app: github-runner
+    spec:
+      serviceAccountName: infra-runner-sa
+      containers:
+      - name: runner
+        image: myoung34/github-runner:ubuntu-jammy
+        env:
+        - name: REPO_URL
+          value: "https://github.com/KlaudiuszSoltysik/solartracker"
+        - name: RUNNER_NAME
+          value: "solartracker-infra-runner"
+        - name: RUNNER_LABELS
+          value: "k8s-infra-runner"
+        - name: RUNNER_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: github-runner-creds
+              key: github-token
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+          requests:
+            cpu: "100m"
+            memory: "256Mi"

@@ -10,7 +10,7 @@ on:
 jobs:
   terraform:
     name: 'Deploy Tunnel'
-    runs-on: k8s-ai-agent
+    runs-on: k8s-infra-runner
     
     env:
       TF_VAR_cloudflare_api_token: ${{ secrets.TF_VAR_CLOUDFLARE_API_TOKEN }}

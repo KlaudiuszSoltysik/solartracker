@@ -1,0 +1,21 @@
+name: 'Terraform Cluster Deploy'
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'infrastructure/terraform/cluster/**'
+
+jobs:
+  terraform:
+    name: 'Deploy Cluster'
+    runs-on: k8s-infra-runner
+
+    defaults:
+      run:
+        working-directory: ./infrastructure/terraform/cluster
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
