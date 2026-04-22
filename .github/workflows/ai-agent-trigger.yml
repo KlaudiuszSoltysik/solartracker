@@ -33,10 +33,14 @@ jobs:
       - name: Install dependencies
         run: |
           pip install requests python-dotenv
+          sudo mkdir -p /etc/apt/keyrings
+          wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | sudo gpg --dearmor -o /etc/apt/keyrings/gierens.gpg
+          echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | sudo tee /etc/apt/sources.list.d/gierens.list
           sudo apt-get update && sudo apt-get install -y eza
 
       - name: Run AI Agent
         env:
+          PYTHONUNBUFFERED: "1"
           OLLAMA_URL: "http://ollama-service.ai-agent.svc.cluster.local:11434"
           MODEL: "qwen2.5:0.5b"
           ROOT_DIR: "."

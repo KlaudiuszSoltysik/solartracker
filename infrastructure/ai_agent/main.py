@@ -22,8 +22,7 @@ IGNORE_FILES = set(file.strip() for file in ignore_files_str.split(","))
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-    flush=True
+    datefmt="%Y-%m-%d %H:%M:%S"
 )
 
 logger = logging.getLogger("readme-writer")
