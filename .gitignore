@@ -1,7 +1,9 @@
+# Global
 .idea
 .env
 .venv
 
+# Mobile app
 node_modules/
 .expo/
 dist/
@@ -24,3 +26,11 @@ yarn-error.*
 *.tsbuildinfo
 /ios
 /android
+
+# Terraform
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.backup
+terraform.tfvars
+*.auto.tfvars

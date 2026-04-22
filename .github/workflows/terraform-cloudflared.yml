@@ -1,0 +1,36 @@
+name: 'Terraform Cloudflare Deploy'
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'infrastructure/terraform/cloudflare/**'
+
+jobs:
+  terraform:
+    name: 'Deploy Tunnel'
+    runs-on: k8s-ai-agent
+    
+    env:
+      TF_VAR_cloudflare_api_token: ${{ secrets.TF_VAR_CLOUDFLARE_API_TOKEN }}
+      TF_VAR_cloudflare_account_id: ${{ secrets.TF_VAR_CLOUDFLARE_ACCOUNT_ID }}
+      TF_VAR_cloudflare_zone_id: ${{ secrets.TF_VAR_CLOUDFLARE_ZONE_ID }}
+      TF_VAR_tunnel_secret: ${{ secrets.TF_VAR_TUNNEL_SECRET }}
+
+    defaults:
+      run:
+        working-directory: ./infrastructure/terraform/cloudflare
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+
+    - name: Terraform Init
+      run: terraform init
+
+    - name: Terraform Apply
+      run: terraform apply -auto-approve

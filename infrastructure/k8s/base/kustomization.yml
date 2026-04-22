@@ -20,6 +20,8 @@ resources:
   - ai-agent/ollama.yml
   - ai-agent/secret.yml
 
+  - cloudflared/deployment.yml
+
   - backend-api/deployment.yml
   - telemetry-processor/deployment.yml
   - solar-forecast/cronjob.yml
