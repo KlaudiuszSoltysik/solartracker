@@ -34,7 +34,7 @@ jobs:
         run: |
           pip install requests python-dotenv --root-user-action=ignore
           sudo mkdir -p /etc/apt/keyrings
-          wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | sudo gpg --dearmor -o /etc/apt/keyrings/gierens.gpg
+          wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | sudo gpg --dearmor --yes --batch --no-tty -o /etc/apt/keyrings/gierens.gpg
           echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | sudo tee /etc/apt/sources.list.d/gierens.list
           sudo apt-get update && sudo apt-get install -y eza
 
