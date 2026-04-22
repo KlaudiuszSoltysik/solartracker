@@ -19,8 +19,17 @@ spec:
           sidecar:
             datasources:
               enabled: true
+              defaultDatasourceEnabled: false 
           
           additionalDataSources:
+            - name: Prometheus
+              type: prometheus
+              url: http://prometheus-stack-kube-prom-prometheus.observability:9090
+              access: proxy
+              isDefault: true
+              jsonData:
+                timeInterval: "30s"
+            
             - name: Loki
               type: loki
               url: http://loki-stack.observability:3100
