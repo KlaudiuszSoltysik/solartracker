@@ -10,6 +10,7 @@ resources:
   - mongodb/secret.yml
 
   - ghcr-secret.yml
+  - rbac.yml
 
   - observability/loki-app.yml
   - observability/prometheus-app.yml
@@ -17,13 +18,11 @@ resources:
 
   - ai-agent/github-runner.yml
   - ai-agent/ollama.yml
-  - ai-agent/rbac.yml
   - ai-agent/secret.yml
 
   - cloudflared/deployment.yml
 
   - github-runner/deployment.yml
-  - github-runner/rbac.yml
   - github-runner/secret.yml
 
   - backend-api/deployment.yml
