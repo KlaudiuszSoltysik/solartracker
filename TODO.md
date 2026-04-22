@@ -3,7 +3,7 @@
 - terraform
 - vpn?
 - cloudflare
-- resources
+- resources cpuu ram
 - prod enviorment + dev edit
 - keycloak
 - mobile app
