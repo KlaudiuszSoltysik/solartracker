@@ -11,7 +11,7 @@ resource "cloudflare_tunnel_config" "api_config" {
   config {
     ingress_rule {
       hostname = "api.260824.xyz"
-      service  = "http://backend-api.services.svc.cluster.local:8000"
+      service  = "http://backend-api.default.svc.cluster.local:8000"
     }
     ingress_rule {
       service = "http_status:404"
