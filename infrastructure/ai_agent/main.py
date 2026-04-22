@@ -81,7 +81,7 @@ def clean_markdown(text):
 
 
 def generate_root_readme(scope_path):
-    logger.info("Generating ROOT README (using eza tree)")
+    logger.info("Generating ROOT README")
     tree_output = subprocess.run(["eza", "--tree", "--git-ignore", scope_path], capture_output=True,
                                  text=True).stdout.strip()
 
@@ -123,7 +123,7 @@ def main():
     logger.info("Starting work!")
 
     all_files = get_valid_files(ROOT_DIR)
-    readme_files = [f for f in all_files if Path(f).name == "README.md"]
+    readme_files = [f for f in all_files if Path(f).name == "README.md" and ".github" not in Path(f).parts]
 
     for readme_str in readme_files:
         readme_path = Path(readme_str)
