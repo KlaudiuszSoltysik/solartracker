@@ -22,9 +22,9 @@ resources:
 
   - cloudflared/deployment.yml
 
-  - github-runner/deployment.yml
-  - github-runner/rbac.yml
-  - github-runner/secret.yml
+  - infrastructure-runner/deployment.yml
+  - infrastructure-runner/rbac.yml
+  - infrastructure-runner/secret.yml
 
   - backend-api/deployment.yml
   - telemetry-processor/deployment.yml
