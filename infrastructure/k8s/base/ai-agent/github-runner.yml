@@ -1,40 +1,32 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: github-runner
+  name: ai-agent-runner
   namespace: ai-agent
 spec:
   replicas: 1
   revisionHistoryLimit: 1
   selector:
     matchLabels:
-      app: github-runner
+      app: ai-agent-runner
   template:
     metadata:
       labels:
-        app: github-runner
+        app: ai-agent-runner
     spec:
+      serviceAccountName: ai-agent-sa
       containers:
       - name: runner
         image: myoung34/github-runner:ubuntu-jammy
         env:
         - name: REPO_URL
           value: "https://github.com/klaudiuszsoltysik/solartracker"
+        - name: RUNNER_NAME
+          value: "ai-agent-runner"
+        - name: RUNNER_LABELS
+          value: "k8s-ai-agent"
         - name: ACCESS_TOKEN
           valueFrom:
             secretKeyRef:
               name: ai-agent-creds
               key: github-token
-        - name: RUNNER_LABELS
-          value: "k8s-ai-agent"
-        - name: RUNNER_WORKDIR
-          value: "/tmp/runner"
-        securityContext:
-          privileged: true
-        volumeMounts:
-        - name: docker-sock
-          mountPath: /var/run/docker.sock
-      volumes:
-      - name: docker-sock
-        hostPath:
-          path: /var/run/docker.sock
