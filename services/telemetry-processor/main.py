@@ -51,7 +51,7 @@ def process_message(ch, method, properties, body):
         routing_key = method.routing_key
         device_id = routing_key.split('.')[-1]
 
-        logger.info(f"Received telemetry | Device: {device_id}")
+        logger.info(f"Received telemetry | Device: {device_id}.")
 
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -79,7 +79,7 @@ def process_message(ch, method, properties, body):
         cursor.close()
         conn.close()
 
-        logger.info(f"Telemetry saved | Device: {device_id}")
+        logger.info(f"Telemetry saved | Device: {device_id}.")
 
         ch.basic_ack(delivery_tag=method.delivery_tag)
 
@@ -89,7 +89,7 @@ def process_message(ch, method, properties, body):
         ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
 
     except Exception as e:
-        logger.error(f"Error parsing telemetry: {e}", exc_info=True)
+        logger.error(f"Error parsing telemetry: {e}.", exc_info=True)
         ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
 
 

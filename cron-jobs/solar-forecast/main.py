@@ -43,7 +43,7 @@ def get_mongo_assets():
         assets = list(collection.find({}))
         return assets
     except Exception as e:
-        logger.error(f"MongoDB connection failed: {e}")
+        logger.error(f"MongoDB connection failed: {e}.")
         return []
     finally:
         if 'client' in locals():
@@ -92,7 +92,7 @@ def main():
             gamma_pdc = farm["gamma_pdc"]
             temp_ref = farm["temp_ref"]
 
-            logger.info(f"Processing farm: {farm['farm_name']}")
+            logger.info(f"Processing farm: {farm['farm_name']}.")
 
             weather_data = fetch_weather_forecast(lat, lon)
             minutely = weather_data['minutely_15']
@@ -121,7 +121,7 @@ def main():
                 forecasts_to_insert.append(
                     (dt_time, device_id, forecasted_power, irradiance, temp, current_time))
         except Exception as e:
-            logger.error(f"Error during processing processing farm: {farm['farm_name']}", exc_info=True)
+            logger.error(f"Error during processing processing farm: {farm['farm_name']}.", exc_info=True)
 
     if not forecasts_to_insert:
         logger.warning("No forecasts generated. Exiting.")
@@ -149,7 +149,7 @@ def main():
         logger.info(f"Successfully updated {len(forecasts_to_insert)} forecast intervals across all farms.")
 
     except Exception as e:
-        logger.error(f"Error during forecasting: {e}", exc_info=True)
+        logger.error(f"Error during forecasting: {e}.", exc_info=True)
     finally:
         if 'cursor' in locals() and cursor: cursor.close()
         if 'conn' in locals() and conn: conn.close()

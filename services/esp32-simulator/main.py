@@ -35,24 +35,24 @@ current_yaw_angle = 90.0
 
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
-        logger.info(f"Connected to MQTT broker at {BROKER}:{PORT}")
+        logger.info(f"Connected to MQTT broker at {BROKER}:{PORT}.")
         client.subscribe(command_topic)
-        logger.info(f"Listening for commands on: {command_topic}")
+        logger.info(f"Listening for commands on: {command_topic}.")
     else:
-        logger.error(f"Connection error, code: {rc}", exc_info=True)
+        logger.error(f"Connection error, code: {rc}.", exc_info=True)
 
 
 def on_message(client, userdata, msg):
     global current_yaw_angle
     try:
         payload = json.loads(msg.payload.decode())
-        logger.info(f"Received command | Topic: {msg.topic} | Data: {payload}")
+        logger.info(f"Received command | Topic: {msg.topic} | Data: {payload}.")
 
         if "target_yaw" in payload:
             current_yaw_angle = float(payload["target_yaw"])
-            logger.info(f"Rotating to: {current_yaw_angle}°")
+            logger.info(f"Rotating to: {current_yaw_angle}°.")
     except Exception as e:
-        logger.error(f"Error parsing message: {e}", exc_info=True)
+        logger.error(f"Error parsing message: {e}.", exc_info=True)
 
 
 def generate_mock_telemetry():
@@ -90,7 +90,7 @@ def main():
 
         info = client.publish(telemetry_topic, payload_json, qos=1)
 
-        logger.info(f"Sent telemetry: {payload_json}")
+        logger.info(f"Sent telemetry: {payload_json}.")
 
         time.sleep(FREQ)
 

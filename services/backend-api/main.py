@@ -40,7 +40,7 @@ def get_db_connection():
         )
         return conn
     except Exception as e:
-        logger.error(f"Database connection failed: {e}")
+        logger.error(f"Database connection failed: {e}.")
         raise HTTPException(status_code=500, detail="Database connection error")
 
 
@@ -74,7 +74,7 @@ def get_telemetry_history(
         start_date: datetime = Query(..., description="Start timestamp (ISO 8601)"),
         end_date: datetime = Query(..., description="End timestamp (ISO 8601)")
 ):
-    logger.info(f"Fetching telemetry for {device_id} | Range: {start_date} to {end_date}")
+    logger.info(f"Fetching telemetry for {device_id} | Range: {start_date} to {end_date}.")
 
     conn = get_db_connection()
     try:
@@ -102,7 +102,7 @@ def get_energy_forecast(
         start_date: datetime = Query(..., description="Start timestamp (ISO 8601)"),
         end_date: datetime = Query(..., description="End timestamp (ISO 8601)")
 ):
-    logger.info(f"Fetching forecast for {device_id} | Range: {start_date} to {end_date}")
+    logger.info(f"Fetching forecast for {device_id} | Range: {start_date} to {end_date}.")
 
     conn = get_db_connection()
     try:
