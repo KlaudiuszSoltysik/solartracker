@@ -46,7 +46,7 @@ jobs:
           ROOT_DIR: "."
           IGNORE_EXTENSIONS: ".png,.jpg,.jpeg,.lock,.pyc,.exe,.toml,.json,.txt"
           IGNORE_FILES: "Dockerfile,.gitignore,secret.yml,install.yaml,ghcr-secret.yml,TODO.md"
-        run: python infrastructure/ai_agent/main.py
+        run: python infrastructure/ai-agent/main.py
 
       - name: Commit and Push changes
         run: |
