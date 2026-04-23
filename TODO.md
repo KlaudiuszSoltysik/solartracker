@@ -2,7 +2,7 @@
 
 ## Faza 1: Ekspozycja i Infrastruktura
 - [ ] **Grafana:** Dashboardy.
-- [ ] **GH Actions:** Poprawa budowania obrazów żeby budowało tylko jak coś się zmieni.
+- [ ] **GH Actions:** Poprawa budowania obrazów żeby budowało tylko jak coś się zmieni i dodać Dockerfile dla infrastructure runnera
 
 ## Faza 3: Bezpieczeństwo i IoT
 - [ ] **VPN (OpenVPN):** Postawienie serwera VPN w klastrze. Podłączenie fizycznych układów ESP32 do prywatnej sieci K8s z ominięciem publicznego Wi-Fi.
