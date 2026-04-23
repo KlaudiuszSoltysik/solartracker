@@ -40,6 +40,22 @@ spec:
               key: password
         - name: POSTGRES_DB
           value: "default_db"
+        - name: MONGODB_HOST
+          value: "mongodb"
+        - name: MONGODB_PORT
+          value: "27017"
+        - name: MONGODB_USER
+          valueFrom:
+            secretKeyRef:
+              name: mongodb-creds
+              key: username
+        - name: MONGODB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mongodb-creds
+              key: password
+        - name: MONGODB_DB
+          value: "default_db"
 ---
 apiVersion: v1
 kind: Service

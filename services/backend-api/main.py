@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from psycopg2.extras import RealDictCursor
+from pymongo import MongoClient
 
 load_dotenv()
 
@@ -17,6 +18,12 @@ POSTGRES_USERNAME = os.environ.get("POSTGRES_USERNAME", "admin")
 POSTGRES_PASSWORD = os.environ.get("POSTGRES_PASSWORD", "admin")
 POSTGRES_NAME = os.environ.get("POSTGRES_NAME", "default_db")
 
+MONGODB_HOST = os.environ.get("MONGODB_HOST", "localhost")
+MONGODB_PORT = os.environ.get("MONGODB_PORT", "27017")
+MONGODB_USERNAME = os.environ.get("MONGODB_USERNAME", "admin")
+MONGODB_PASSWORD = os.environ.get("MONGODB_PASSWORD", "admin")
+MONGODB_DB = os.environ.get("MONGODB_DB", "default_db")
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
@@ -25,10 +32,11 @@ logging.basicConfig(
 
 logger = logging.getLogger("backend-api")
 
+logging.getLogger("uvicorn").setLevel(logging.WARNING)
 logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
 
 
-def get_db_connection():
+def get_postgres_connection():
     try:
         conn = psycopg2.connect(
             host=POSTGRES_HOST,
@@ -42,6 +50,11 @@ def get_db_connection():
     except Exception as e:
         logger.error(f"Database connection failed: {e}.")
         raise HTTPException(status_code=500, detail="Database connection error")
+
+
+def get_mongodb_client():
+    uri = f"mongodb://{MONGODB_USERNAME}:{MONGODB_PASSWORD}@{MONGODB_HOST}:{MONGODB_PORT}/"
+    return MongoClient(uri)
 
 
 @asynccontextmanager
@@ -76,16 +89,16 @@ def get_telemetry_history(
 ):
     logger.info(f"Fetching telemetry for {device_id} | Range: {start_date} to {end_date}.")
 
-    conn = get_db_connection()
+    conn = get_postgres_connection()
     try:
         with conn.cursor() as cursor:
             query = """
-                    SELECT time, voltage_v, current_a, irradiance_wm2, temp_c, yaw_angle_deg, status
+                    SELECT time, (voltage_v * current_a) AS power_w, irradiance_wm2, temp_c, yaw_angle_deg, status
                     FROM telemetry
                     WHERE device_id = %s
                       AND time >= %s
                       AND time <= %s
-                    ORDER BY time DESC; \
+                    ORDER BY time ASC; \
                     """
             cursor.execute(query, (device_id, start_date, end_date))
             results = cursor.fetchall()
@@ -104,7 +117,7 @@ def get_energy_forecast(
 ):
     logger.info(f"Fetching forecast for {device_id} | Range: {start_date} to {end_date}.")
 
-    conn = get_db_connection()
+    conn = get_postgres_connection()
     try:
         with conn.cursor() as cursor:
             query = """
@@ -113,7 +126,7 @@ def get_energy_forecast(
                     WHERE device_id = %s
                       AND time >= %s
                       AND time <= %s
-                    ORDER BY time DESC; \
+                    ORDER BY time ASC; \
                     """
             cursor.execute(query, (device_id, start_date, end_date))
             results = cursor.fetchall()
@@ -135,7 +148,45 @@ def get_energy_forecast(
         conn.close()
 
 
+@app.get("/api/v1/current-state/{device_id}")
+def get_current_state(device_id: str):
+    pass
+
+
+@app.get("/api/v1/assets")
+def get_all_assets():
+    logger.info("Fetching all assets from pv_assets and wind_assets.")
+
+    client = get_mongodb_client()
+
+    try:
+        db = client[MONGODB_DB]
+
+        pv_cursor = db["assets_pv"].find({}, {"_id": 0})
+        pv_assets = list(pv_cursor)
+        for asset in pv_assets:
+            asset["asset_type"] = "pv"
+
+        wind_cursor = db["assets_wind"].find({}, {"_id": 0})
+        wind_assets = list(wind_cursor)
+        for asset in wind_assets:
+            asset["asset_type"] = "wind"
+
+        combined_assets = pv_assets + wind_assets
+        combined_assets.sort(key=lambda asset: asset.get("farm_name", "").lower())
+
+        logger.info(f"Query successful. Found {len(pv_assets)} PV and {len(wind_assets)} Wind assets.")
+        return combined_assets
+
+    except Exception as e:
+        logger.error(f"MongoDB query failed: {str(e)}.")
+        raise HTTPException(status_code=500, detail="Failed to fetch assets")
+
+    finally:
+        client.close()
+
+
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8001)

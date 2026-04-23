@@ -59,7 +59,7 @@ def generate_mock_telemetry():
     return {
         "timestamp": int(time.time()),
         "voltage_v": round(random.uniform(28.5, 34.2), 2),
-        "current_a": round(random.uniform(0.5, 10.0), 2),
+        "current_a": round(random.uniform(0.05, 1.0), 2),
         "irradiance_wm2": random.randint(200, 950),
         "temp_c": round(random.uniform(15.0, 45.0), 1),
         "yaw_angle_deg": current_yaw_angle,

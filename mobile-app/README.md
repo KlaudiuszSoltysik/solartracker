@@ -20,7 +20,7 @@ This is a React Native application that provides a simple interface to manage an
   }
   ```
 
-- **App.ts** - This file contains the main component of the app. It is a simple React Native application that displays a status bar and a text view.
+- **App.tsx** - This file contains the main component of the app. It is a simple React Native application that displays a status bar and a text view.
 
   ```typescript
   import { registerRootComponent } from 'expo';
