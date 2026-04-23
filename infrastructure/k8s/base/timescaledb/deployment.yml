@@ -7,6 +7,7 @@ metadata:
 spec:
   serviceName: "timescaledb"
   replicas: 1
+  revisionHistoryLimit: 1
   selector:
     matchLabels:
       app: timescaledb
@@ -38,13 +39,6 @@ spec:
           mountPath: /docker-entrypoint-initdb.d/
         - name: timescaledb-data
           mountPath: /var/lib/postgresql/data 
-        resources:
-          requests:
-            cpu: 250m
-            memory: 512Mi
-          limits:
-            cpu: 500m
-            memory: 1Gi
       volumes:
       - name: init-scripts
         configMap:

@@ -5,6 +5,7 @@ metadata:
   namespace: infrastructure
 spec:
   replicas: 1
+  revisionHistoryLimit: 1
   selector:
     matchLabels:
       app: github-runner
@@ -29,10 +30,3 @@ spec:
             secretKeyRef:
               name: github-runner-creds
               key: github-token
-        resources:
-          limits:
-            cpu: "500m"
-            memory: "512Mi"
-          requests:
-            cpu: "100m"
-            memory: "256Mi"

@@ -5,6 +5,7 @@ metadata:
   namespace: ai-agent
 spec:
   replicas: 1
+  revisionHistoryLimit: 1
   selector:
     matchLabels:
       app: github-runner

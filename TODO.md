@@ -4,9 +4,6 @@
 - [ ] **Grafana:** Dashboardy.
 - [ ] **GH Actions:** Poprawa budowania obrazów żeby budowało tylko jak coś się zmieni.
 
-## Faza 2: Optymalizacja K8s
-- [ ] **Resource Limits & Requests:** Konfiguracja limitów i requestów CPU i RAM dla każdego namespace'u (zapobieganie OOMKillom i zagłodzeniu usług).
-
 ## Faza 3: Bezpieczeństwo i IoT
 - [ ] **VPN (OpenVPN):** Postawienie serwera VPN w klastrze. Podłączenie fizycznych układów ESP32 do prywatnej sieci K8s z ominięciem publicznego Wi-Fi.
 
