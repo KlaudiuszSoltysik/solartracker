@@ -6,9 +6,9 @@ resources:
   - esp32-simulator/deployment.yml
 
 images:
-  # - name: backend-api
-  #   newName: ghcr.io/klaudiuszsoltysik/solartracker/backend-api
-  #   newTag: master
+  - name: backend-api
+    newName: ghcr.io/klaudiuszsoltysik/solartracker/backend-api
+    newTag: master
   - name: telemetry-processor
     newName: ghcr.io/klaudiuszsoltysik/solartracker/telemetry-processor
     newTag: master
