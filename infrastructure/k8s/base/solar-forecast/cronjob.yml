@@ -15,8 +15,8 @@ spec:
           - name: ghcr-secret
           containers:
           - name: solar-forecast
-            image: solar-forecast:v1
-            imagePullPolicy: IfNotPresent
+            image: solar-forecast
+            imagePullPolicy: Always
             env:
             - name: POSTGRES_HOST
               value: "timescaledb"

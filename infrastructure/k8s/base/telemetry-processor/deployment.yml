@@ -18,8 +18,8 @@ spec:
       - name: ghcr-secret
       containers:
       - name: telemetry-processor
-        image: telemetry-processor:v1
-        imagePullPolicy: IfNotPresent
+        image: telemetry-processor
+        imagePullPolicy: Always
         env:
         - name: RABBITMQ_HOST
           value: "rabbitmq"

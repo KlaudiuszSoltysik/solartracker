@@ -18,8 +18,8 @@ spec:
       - name: ghcr-secret
       containers:
       - name: backend-api
-        image: backend-api:v1
-        imagePullPolicy: IfNotPresent
+        image: backend-api
+        imagePullPolicy: Always
         command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
         ports:
         - containerPort: 8000

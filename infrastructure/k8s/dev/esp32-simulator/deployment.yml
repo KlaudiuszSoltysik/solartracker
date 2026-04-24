@@ -18,8 +18,8 @@ spec:
       - name: ghcr-secret
       containers:
       - name: esp32-simulator
-        image: esp32-simulator:v1
-        imagePullPolicy: IfNotPresent
+        image: esp32-simulator
+        imagePullPolicy: Always
         env:
         - name: DEVICE_ID
           value: "ESP_test"
