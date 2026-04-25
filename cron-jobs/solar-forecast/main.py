@@ -1,7 +1,9 @@
+import json
 import logging
 import os
 from datetime import datetime, timezone, timedelta
 
+import pika
 import psycopg2
 import pvlib
 import requests
@@ -23,6 +25,11 @@ MONGODB_USERNAME = os.environ.get("MONGODB_USERNAME", "admin")
 MONGODB_PASSWORD = os.environ.get("MONGODB_PASSWORD", "admin")
 MONGODB_DB = os.environ.get("MONGODB_DB", "default_db")
 
+RABBITMQ_HOST = os.environ.get("RABBITMQ_HOST", "localhost")
+RABBITMQ_PORT = int(os.environ.get("RABBITMQ_PORT", "5672"))
+RABBITMQ_USERNAME = os.environ.get("RABBITMQ_USERNAME", "admin")
+RABBITMQ_PASSWORD = os.environ.get("RABBITMQ_PASSWORD", "admin")
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
@@ -38,7 +45,7 @@ def get_mongo_assets():
     try:
         client = MongoClient(mongo_uri, serverSelectionTimeoutMS=5000)
         db = client[MONGODB_DB]
-        collection = db['assets_pv']
+        collection = db["assets_pv"]
 
         assets = list(collection.find({}))
         return assets
@@ -46,7 +53,7 @@ def get_mongo_assets():
         logger.error(f"MongoDB connection failed: {e}.")
         return []
     finally:
-        if 'client' in locals():
+        if "client" in locals():
             client.close()
 
 
@@ -75,13 +82,14 @@ def calculate_power(irradiance_wm2, temp_c, max_power_w, gamma_pdc, temp_ref):
 def main():
     pv_assets = get_mongo_assets()
 
-    logger.info(f"Starting solar power forecasting job started for {len(pv_assets)} assets.")
+    logger.info(f"Starting solar power forecasting job for {len(pv_assets)} assets.")
 
     if not pv_assets:
-        logger.info("Forecasting job finished.")
+        logger.info("Forecasting job finished. No assets found.")
         return
 
     forecasts_to_insert = []
+    updated_device_ids = set()
 
     for farm in pv_assets:
         try:
@@ -95,12 +103,12 @@ def main():
             logger.info(f"Processing farm: {farm['farm_name']}.")
 
             weather_data = fetch_weather_forecast(lat, lon)
-            minutely = weather_data['minutely_15']
+            minutely = weather_data["minutely_15"]
 
             current_time = datetime.now(timezone.utc)
 
-            for i in range(len(minutely['time'])):
-                dt_time = datetime.fromisoformat(minutely['time'][i])
+            for i in range(len(minutely["time"])):
+                dt_time = datetime.fromisoformat(minutely["time"][i])
 
                 if dt_time.tzinfo is None:
                     dt_time = dt_time.replace(tzinfo=timezone.utc)
@@ -110,18 +118,19 @@ def main():
                 if dt_time < current_time:
                     continue
 
-                irradiance = minutely['shortwave_radiation'][i]
-                temp = minutely['temperature_2m'][i]
+                irradiance = minutely["shortwave_radiation"][i]
+                temp = minutely["temperature_2m"][i]
 
                 if irradiance is None or temp is None:
                     continue
 
                 forecasted_power = calculate_power(irradiance, temp, max_power_w, gamma_pdc, temp_ref)
 
-                forecasts_to_insert.append(
-                    (dt_time, device_id, forecasted_power, irradiance, temp, current_time))
+                forecasts_to_insert.append((dt_time, device_id, forecasted_power, irradiance, temp, current_time))
+                updated_device_ids.add(device_id)
+
         except Exception as e:
-            logger.error(f"Error during processing processing farm: {farm['farm_name']}.", exc_info=True)
+            logger.error(f"Error during processing farm: {farm['farm_name']}.", exc_info=True)
 
     if not forecasts_to_insert:
         logger.warning("No forecasts generated. Exiting.")
@@ -135,24 +144,51 @@ def main():
         query = """
                 INSERT INTO forecast (time, device_id, power_w, irradiance_wm2, temp_c, forecasted_at)
                 VALUES %s ON CONFLICT (time, device_id) 
-            DO
-                UPDATE SET
+                DO UPDATE SET
                     power_w = EXCLUDED.power_w,
                     irradiance_wm2 = EXCLUDED.irradiance_wm2,
                     temp_c = EXCLUDED.temp_c,
-                    forecasted_at = EXCLUDED.forecasted_at; \
+                    forecasted_at = EXCLUDED.forecasted_at;
                 """
 
         execute_values(cursor, query, forecasts_to_insert)
         conn.commit()
+        logger.info(f"Successfully updated {len(forecasts_to_insert)} forecast intervals in DB.")
 
-        logger.info(f"Successfully updated {len(forecasts_to_insert)} forecast intervals across all farms.")
+        try:
+            credentials = pika.PlainCredentials(RABBITMQ_USERNAME, RABBITMQ_PASSWORD)
+            parameters = pika.ConnectionParameters(RABBITMQ_HOST, RABBITMQ_PORT, "/", credentials)
+            rabbit_conn = pika.BlockingConnection(parameters)
+            channel = rabbit_conn.channel()
+
+            channel.exchange_declare(exchange="processed_telemetry", exchange_type="topic", durable=True)
+
+            for dev_id in updated_device_ids:
+                ping_payload = {
+                    "type": "forecast_update",
+                    "device_id": dev_id,
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                }
+
+                routing_key = f"processed.forecast.{dev_id}"
+
+                channel.basic_publish(
+                    exchange="processed_telemetry",
+                    routing_key=routing_key,
+                    body=json.dumps(ping_payload),
+                    properties=pika.BasicProperties(delivery_mode=1, expiration="180000")
+                )
+
+            rabbit_conn.close()
+            logger.info("Sent update pings to RabbitMQ successfully.")
+        except Exception as mq_err:
+             logger.error(f"Failed to send ping to RabbitMQ: {mq_err}")
 
     except Exception as e:
-        logger.error(f"Error during forecasting: {e}.", exc_info=True)
+        logger.error(f"Error during forecasting DB save: {e}.", exc_info=True)
     finally:
-        if 'cursor' in locals() and cursor: cursor.close()
-        if 'conn' in locals() and conn: conn.close()
+        if "cursor" in locals() and cursor: cursor.close()
+        if "conn" in locals() and conn: conn.close()
         logger.info("Forecasting job finished.")
 
 

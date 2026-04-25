@@ -24,8 +24,8 @@ POSTGRES_DB = os.environ.get("POSTGRES_DB", "default_db")
 
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s [%(levelname)s] [%(name)s] %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S',
+    format="%(asctime)s [%(levelname)s] [%(name)s] %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
     handlers=[logging.StreamHandler(sys.stdout)]
 )
 
@@ -49,7 +49,7 @@ def process_message(ch, method, properties, body):
         payload = json.loads(body.decode())
 
         routing_key = method.routing_key
-        device_id = routing_key.split('.')[-1]
+        device_id = routing_key.split(".")[-1]
 
         logger.info(f"Received telemetry | Device: {device_id}.")
 
@@ -81,6 +81,28 @@ def process_message(ch, method, properties, body):
 
         logger.info(f"Telemetry saved | Device: {device_id}.")
 
+        voltage = payload.get("voltage_v", 0)
+        current = payload.get("current_a", 0)
+        payload["power_w"] = round(voltage * current, 2)
+        
+        payload["time"] = dt_time.isoformat()
+
+        payload.pop("voltage_v", None)
+        payload.pop("current_a", None)
+
+        processed_routing_key = f"processed.telemetry.{device_id}"
+        
+        ch.basic_publish(
+            exchange="processed_telemetry",
+            routing_key=processed_routing_key,
+            body=json.dumps(payload),
+            properties=pika.BasicProperties(
+                delivery_mode=1,
+                expiration="180000"
+            )
+        )
+        logger.info(f"Forwarded processed data to exchange | Routing Key: {processed_routing_key}.")
+
         ch.basic_ack(delivery_tag=method.delivery_tag)
 
     except psycopg2.OperationalError as e:
@@ -95,7 +117,7 @@ def process_message(ch, method, properties, body):
 
 def main():
     credentials = pika.PlainCredentials(RABBITMQ_USERNAME, RABBITMQ_PASSWORD)
-    parameters = pika.ConnectionParameters(RABBITMQ_HOST, RABBITMQ_PORT, '/', credentials)
+    parameters = pika.ConnectionParameters(RABBITMQ_HOST, RABBITMQ_PORT, "/", credentials)
 
     while True:
         try:
@@ -103,9 +125,10 @@ def main():
             connection = pika.BlockingConnection(parameters)
             channel = connection.channel()
 
-            queue_name = 'q_telemetry_processor'
+            queue_name = "q_telemetry_processor"
             channel.queue_declare(queue=queue_name, durable=True)
-            channel.queue_bind(exchange='amq.topic', queue=queue_name, routing_key='telemetry.device.#')
+            channel.queue_bind(exchange="amq.topic", queue=queue_name, routing_key="telemetry.device.#")
+            channel.exchange_declare(exchange="processed_telemetry", exchange_type="topic", durable=True)
             channel.basic_consume(queue=queue_name, on_message_callback=process_message)
 
             logger.info(f"Connected to '{queue_name}'. Waiting for messages...")

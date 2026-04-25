@@ -56,6 +56,20 @@ spec:
               key: password
         - name: MONGODB_DB
           value: "default_db"
+        - name: RABBITMQ_HOST
+          value: "rabbitmq"
+        - name: RABBITMQ_PORT
+          value: "5672"
+        - name: RABBITMQ_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: rabbitmq-creds
+              key: username
+        - name: RABBITMQ_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: rabbitmq-creds
+              key: password
 ---
 apiVersion: v1
 kind: Service

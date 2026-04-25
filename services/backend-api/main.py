@@ -1,11 +1,15 @@
+import asyncio
+import json
 import logging
 import os
 from contextlib import asynccontextmanager
 from datetime import datetime
+from typing import Dict, List
 
+import aio_pika
 import psycopg2
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from psycopg2.extras import RealDictCursor
 from pymongo import MongoClient
@@ -24,6 +28,11 @@ MONGODB_USERNAME = os.environ.get("MONGODB_USERNAME", "admin")
 MONGODB_PASSWORD = os.environ.get("MONGODB_PASSWORD", "admin")
 MONGODB_DB = os.environ.get("MONGODB_DB", "default_db")
 
+RABBITMQ_HOST = os.environ.get("RABBITMQ_HOST", "localhost")
+RABBITMQ_PORT = int(os.environ.get("RABBITMQ_PORT", "5672"))
+RABBITMQ_USERNAME = os.environ.get("RABBITMQ_USERNAME", "admin")
+RABBITMQ_PASSWORD = os.environ.get("RABBITMQ_PASSWORD", "admin")
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
@@ -34,6 +43,7 @@ logger = logging.getLogger("backend-api")
 
 logging.getLogger("uvicorn").setLevel(logging.WARNING)
 logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
+logging.getLogger("aio_pika").setLevel(logging.WARNING)
 
 
 def get_postgres_connection():
@@ -57,9 +67,82 @@ def get_mongodb_client():
     return MongoClient(uri)
 
 
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: Dict[str, List[WebSocket]] = {}
+
+    async def connect(self, websocket: WebSocket, device_id: str):
+        await websocket.accept()
+        if device_id not in self.active_connections:
+            self.active_connections[device_id] = []
+        self.active_connections[device_id].append(websocket)
+        logger.info(
+            f"WebSocket connected | Device: {device_id} | Total clients for device: {len(self.active_connections[device_id])}")
+
+    def disconnect(self, websocket: WebSocket, device_id: str):
+        if device_id in self.active_connections:
+            self.active_connections[device_id].remove(websocket)
+            if not self.active_connections[device_id]:
+                del self.active_connections[device_id]
+            logger.info(f"WebSocket disconnected | Device: {device_id}")
+
+    async def broadcast_to_device(self, device_id: str, message: dict):
+        if device_id in self.active_connections:
+            for connection in self.active_connections[device_id]:
+                try:
+                    await connection.send_json(message)
+                except Exception as e:
+                    logger.error(f"Failed to send WS message: {e}")
+
+
+manager = ConnectionManager()
+
+
+async def consume_rabbitmq():
+    while True:
+        try:
+            connection = await aio_pika.connect_robust(
+                host=RABBITMQ_HOST,
+                port=RABBITMQ_PORT,
+                login=RABBITMQ_USERNAME,
+                password=RABBITMQ_PASSWORD
+            )
+
+            async with connection:
+                channel = await connection.channel()
+
+                exchange = await channel.declare_exchange(
+                    name="processed_telemetry",
+                    type=aio_pika.ExchangeType.TOPIC,
+                    durable=True
+                )
+
+                queue = await channel.declare_queue(exclusive=True, auto_delete=True)
+                await queue.bind(exchange, routing_key="processed.#")
+
+                async with queue.iterator() as queue_iter:
+                    async for message in queue_iter:
+                        async with message.process():
+                            payload = json.loads(message.body.decode())
+
+                            routing_key = message.routing_key
+                            device_id = routing_key.split(".")[-1]
+
+                            if routing_key.startswith("processed.telemetry."):
+                                payload["type"] = "live_telemetry"
+
+                            await manager.broadcast_to_device(device_id, payload)
+
+        except Exception as e:
+            logger.error(f"RabbitMQ consumer error: {e}. Retrying in 5 seconds...")
+            await asyncio.sleep(5)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Starting API...")
+
+    rabbitmq_task = asyncio.create_task(consume_rabbitmq())
 
     yield
 
@@ -184,6 +267,16 @@ def get_all_assets():
 
     finally:
         client.close()
+
+
+@app.websocket("/api/v1/ws/telemetry/{device_id}")
+async def websocket_telemetry(websocket: WebSocket, device_id: str):
+    await manager.connect(websocket, device_id)
+    try:
+        while True:
+            data = await websocket.receive_text()
+    except WebSocketDisconnect:
+        manager.disconnect(websocket, device_id)
 
 
 if __name__ == "__main__":

@@ -1,5 +1,5 @@
-import React, {useEffect, useState} from 'react';
-import {ActivityIndicator, Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import React, {useEffect, useState} from "react";
+import {ActivityIndicator, Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {
     VictoryAxis,
     VictoryChart,
@@ -40,8 +40,8 @@ export default function AssetScreen({ route }: any) {
     };
 
     const year = currentDate.getFullYear();
-    const month = String(currentDate.getMonth() + 1).padStart(2, '0');
-    const day = String(currentDate.getDate()).padStart(2, '0');
+    const month = String(currentDate.getMonth() + 1).padStart(2, "0");
+    const day = String(currentDate.getDate()).padStart(2, "0");
     const formattedDate = `${year}-${month}-${day}`;
 
     const isToday = new Date().toDateString() === currentDate.toDateString();
@@ -73,20 +73,20 @@ export default function AssetScreen({ route }: any) {
 
             setData({
                 power: {
-                    real: extractData(realJson, 'power_w'),
-                    forecast: extractData(forecastJson, 'power_w')
+                    real: extractData(realJson, "power_w"),
+                    forecast: extractData(forecastJson, "power_w")
                 },
                 irradiance: {
-                    real: extractData(realJson, 'irradiance_wm2'),
-                    forecast: extractData(forecastJson, 'irradiance_wm2')
+                    real: extractData(realJson, "irradiance_wm2"),
+                    forecast: extractData(forecastJson, "irradiance_wm2")
                 },
                 temp: {
-                    real: extractData(realJson, 'temp_c'),
-                    forecast: extractData(forecastJson, 'temp_c')
+                    real: extractData(realJson, "temp_c"),
+                    forecast: extractData(forecastJson, "temp_c")
                 },
                 wind: {
-                    real: extractData(realJson, 'wind_mps'),
-                    forecast: extractData(forecastJson, 'wind_mps')
+                    real: extractData(realJson, "wind_mps"),
+                    forecast: extractData(forecastJson, "wind_mps")
                 }
             });
         } catch (err) {
@@ -148,7 +148,7 @@ export default function AssetScreen({ route }: any) {
                             isToday={isToday}
                         />
 
-                        {assetType.toLowerCase() === 'pv' && (
+                        {assetType.toLowerCase() === "pv" && (
                             <>
                                 <MetricChart
                                     title="Shortwave radiation"
@@ -167,7 +167,7 @@ export default function AssetScreen({ route }: any) {
                             </>
                         )}
 
-                        {assetType.toLowerCase() === 'wind' && (
+                        {assetType.toLowerCase() === "wind" && (
                             <MetricChart
                                 title="Wind speed"
                                 realData={data.wind.real}
@@ -207,7 +207,7 @@ const MetricChart = ({title, realData, forecastData, ySuffix, isToday}: {
                 <VictoryAxis
                     tickFormat={(x) => {
                         const d = new Date(x);
-                        return `${d.getUTCHours()}:${d.getUTCMinutes().toString().padStart(2, '0')}`;
+                        return `${d.getUTCHours()}:${d.getUTCMinutes().toString().padStart(2, "0")}`;
                     }}
                     fixLabelOverlap
                     style={{tickLabels: {fontSize: 10, padding: 5}}}
@@ -245,49 +245,49 @@ const MetricChart = ({title, realData, forecastData, ySuffix, isToday}: {
 };
 
 const styles = StyleSheet.create({
-    container: {flex: 1, backgroundColor: '#f5f5f5', padding: 16},
+    container: {flex: 1, backgroundColor: "#f5f5f5", padding: 16},
 
     metaCard: {
-        backgroundColor: 'white',
+        backgroundColor: "white",
         borderRadius: 16,
         padding: 16,
         marginBottom: 16,
         elevation: 3,
-        shadowColor: '#000',
+        shadowColor: "#000",
         shadowOpacity: 0.1,
         shadowRadius: 5,
         shadowOffset: {width: 0, height: 2}
     },
-    metaTitle: {fontSize: 22, fontWeight: 'bold', color: '#333', marginBottom: 12},
-    metaBadge: {fontSize: 14, color: '#8641f4', fontWeight: 'normal'},
+    metaTitle: {fontSize: 22, fontWeight: "bold", color: "#333", marginBottom: 12},
+    metaBadge: {fontSize: 14, color: "#8641f4", fontWeight: "normal"},
     metaRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
+        flexDirection: "row",
+        justifyContent: "space-between",
         paddingVertical: 4,
         borderBottomWidth: 1,
-        borderBottomColor: '#f0f0f0'
+        borderBottomColor: "#f0f0f0"
     },
-    metaLabel: {fontSize: 14, color: '#666'},
-    metaValue: {fontSize: 14, fontWeight: '600', color: '#333'},
+    metaLabel: {fontSize: 14, color: "#666"},
+    metaValue: {fontSize: 14, fontWeight: "600", color: "#333"},
 
     chartCard: {
-        backgroundColor: 'white',
+        backgroundColor: "white",
         borderRadius: 16,
         padding: 8,
         marginBottom: 16,
         elevation: 3,
-        shadowColor: '#000',
+        shadowColor: "#000",
         shadowOpacity: 0.1,
         shadowRadius: 5,
         shadowOffset: {width: 0, height: 2}
     },
-    chartTitle: {fontSize: 16, fontWeight: 'bold', color: '#444', textAlign: 'center', marginTop: 8, marginBottom: -10},
+    chartTitle: {fontSize: 16, fontWeight: "bold", color: "#444", textAlign: "center", marginTop: 8, marginBottom: -10},
 
-    dateControlContainer: { marginBottom: 16, alignItems: 'center' },
-    dateButtonsRow: { flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginBottom: 8 },
-    dateBtn: { backgroundColor: '#e0e0e0', paddingVertical: 8, paddingHorizontal: 16, borderRadius: 8, minWidth: 80, alignItems: 'center' },
-    dateBtnText: { color: '#333', fontWeight: '600' },
-    dateBtnToday: { backgroundColor: '#8641f4', paddingVertical: 8, paddingHorizontal: 24, borderRadius: 8, elevation: 2 },
-    dateBtnTextToday: { color: 'white', fontWeight: 'bold' },
-    currentDateText: { fontSize: 16, fontWeight: 'bold', color: '#555' }
+    dateControlContainer: { marginBottom: 16, alignItems: "center" },
+    dateButtonsRow: { flexDirection: "row", justifyContent: "space-between", width: "100%", marginBottom: 8 },
+    dateBtn: { backgroundColor: "#e0e0e0", paddingVertical: 8, paddingHorizontal: 16, borderRadius: 8, minWidth: 80, alignItems: "center" },
+    dateBtnText: { color: "#333", fontWeight: "600" },
+    dateBtnToday: { backgroundColor: "#8641f4", paddingVertical: 8, paddingHorizontal: 24, borderRadius: 8, elevation: 2 },
+    dateBtnTextToday: { color: "white", fontWeight: "bold" },
+    currentDateText: { fontSize: 16, fontWeight: "bold", color: "#555" }
 });

@@ -41,8 +41,10 @@ def on_connect(client, userdata, flags, rc):
     else:
         logger.error(f"Connection error, code: {rc}.", exc_info=True)
 
+
 def on_disconnect(client, userdata, disconnect_flags, rc):
     logger.warning(f"Disconnected from MQTT broker! Code: {rc}")
+
 
 def on_message(client, userdata, msg):
     global current_yaw_angle
@@ -97,10 +99,10 @@ def main():
         payload_json = json.dumps(telemetry_data)
 
         info = client.publish(telemetry_topic, payload_json, qos=1)
-        
+
         try:
-            info.wait_for_publish(timeout=2.0)
-            
+            info.wait_for_publish(timeout=15)
+
             if info.is_published():
                 logger.info(f"Sent telemetry: {payload_json}.")
             else:
