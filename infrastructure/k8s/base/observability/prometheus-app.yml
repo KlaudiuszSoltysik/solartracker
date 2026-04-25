@@ -20,6 +20,8 @@ spec:
             existingSecret: "grafana-creds"
             userKey: username
             passwordKey: password
+          deploymentStrategy:
+            type: Recreate
   destination:
     server: "https://kubernetes.default.svc"
     namespace: observability
