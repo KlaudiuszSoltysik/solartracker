@@ -33,7 +33,7 @@ command_topic = f"controls/device/{DEVICE_ID}"
 current_yaw_angle = 90.0
 
 
-def on_connect(client, userdata, flags, rc):
+def on_connect(client, userdata, flags, rc, properties):
     if rc == 0:
         logger.info(f"Connected to MQTT broker at {BROKER}:{PORT}.")
         client.subscribe(command_topic)
@@ -42,7 +42,7 @@ def on_connect(client, userdata, flags, rc):
         logger.error(f"Connection error, code: {rc}.", exc_info=True)
 
 
-def on_disconnect(client, userdata, disconnect_flags, rc):
+def on_disconnect(client, userdata, disconnect_flags, rc, properties):
     logger.warning(f"Disconnected from MQTT broker! Code: {rc}")
 
 

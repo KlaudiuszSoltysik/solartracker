@@ -10,6 +10,8 @@ import {
 } from "victory-native";
 import {API_BASE_URL} from "../../App";
 
+const WS_BASE_URL = API_BASE_URL.replace(/^http/, "ws");
+
 export default function AssetScreen({route}: any) {
     const {deviceId, assetType, name, maxPowerW, lat, lon} = route.params;
 
@@ -46,59 +48,121 @@ export default function AssetScreen({route}: any) {
 
     const isToday = new Date().toDateString() === currentDate.toDateString();
 
-    const fetchData = async () => {
-        setLoading(true);
+    const getTimeBounds = () => {
         const start = new Date(currentDate);
         start.setUTCHours(0, 0, 0, 0);
 
         const end = new Date(currentDate);
         end.setUTCHours(23, 59, 59, 999);
 
-        const params = `?start_date=${start.toISOString()}&end_date=${end.toISOString()}`;
+        return `?start_date=${start.toISOString()}&end_date=${end.toISOString()}`;
+    };
 
+    const extractData = (json: any, key: string) =>
+        (json.data || []).map((d: any) => ({
+            x: new Date(d.time),
+            y: d[key] ?? 0
+        }));
+
+    const fetchTelemetryData = async (params: string) => {
         try {
-            const [realRes, forecastRes] = await Promise.all([
-                fetch(`${API_BASE_URL}/telemetry/${deviceId}${params}`),
-                fetch(`${API_BASE_URL}/energy-forecast/${deviceId}${params}`)
-            ]);
+            const res = await fetch(`${API_BASE_URL}/telemetry/${deviceId}${params}`);
+            const json = await res.json();
 
-            const realJson = await realRes.json();
-            const forecastJson = await forecastRes.json();
-
-            const extractData = (json: any, key: string) =>
-                (json.data || []).map((d: any) => ({
-                    x: new Date(d.time),
-                    y: d[key] ?? 0
-                }));
-
-            setData({
-                power: {
-                    real: extractData(realJson, "power_w"),
-                    forecast: extractData(forecastJson, "power_w")
-                },
-                irradiance: {
-                    real: extractData(realJson, "irradiance_wm2"),
-                    forecast: extractData(forecastJson, "irradiance_wm2")
-                },
-                temp: {
-                    real: extractData(realJson, "temp_c"),
-                    forecast: extractData(forecastJson, "temp_c")
-                },
-                wind: {
-                    real: extractData(realJson, "wind_mps"),
-                    forecast: extractData(forecastJson, "wind_mps")
-                }
-            });
+            setData(prev => ({
+                ...prev,
+                power: {...prev.power, real: extractData(json, "power_w")},
+                irradiance: {...prev.irradiance, real: extractData(json, "irradiance_wm2")},
+                temp: {...prev.temp, real: extractData(json, "temp_c")},
+                wind: {...prev.wind, real: extractData(json, "wind_mps")}
+            }));
         } catch (err) {
-            console.error(err);
-        } finally {
-            setLoading(false);
+            console.error("Failed to fetch telemetry:", err);
+        }
+    };
+
+    const fetchForecastData = async (params: string) => {
+        try {
+            const res = await fetch(`${API_BASE_URL}/energy-forecast/${deviceId}${params}`);
+            const json = await res.json();
+
+            setData(prev => ({
+                ...prev,
+                power: {...prev.power, forecast: extractData(json, "power_w")},
+                irradiance: {...prev.irradiance, forecast: extractData(json, "irradiance_wm2")},
+                temp: {...prev.temp, forecast: extractData(json, "temp_c")},
+                wind: {...prev.wind, forecast: extractData(json, "wind_speed_mps")}
+            }));
+        } catch (err) {
+            console.error("Failed to fetch forecast:", err);
         }
     };
 
     useEffect(() => {
-        fetchData();
+        const loadAllData = async () => {
+            setLoading(true);
+            const params = getTimeBounds();
+            await Promise.all([
+                fetchTelemetryData(params),
+                fetchForecastData(params)
+            ]);
+            setLoading(false);
+        };
+
+        loadAllData();
     }, [currentDate]);
+
+
+    useEffect(() => {
+        if (!isToday) return;
+
+        let ws: WebSocket;
+        let reconnectTimer: NodeJS.Timeout;
+
+        const connectWebSocket = () => {
+            ws = new WebSocket(`${WS_BASE_URL}/ws/live/${deviceId}`);
+
+            ws.onopen = () => console.log(`WS connected for ${deviceId}`);
+
+            ws.onmessage = (event) => {
+                const msg = JSON.parse(event.data);
+
+                if (msg.type === "live_telemetry") {
+                    setData(prev => {
+                        const newTime = new Date(msg.time);
+                        return {
+                            ...prev,
+                            power: {...prev.power, real: [...prev.power.real, {x: newTime, y: msg.power_w ?? 0}]},
+                            irradiance: {
+                                ...prev.irradiance,
+                                real: [...prev.irradiance.real, {x: newTime, y: msg.irradiance_wm2 ?? 0}]
+                            },
+                            temp: {...prev.temp, real: [...prev.temp.real, {x: newTime, y: msg.temp_c ?? 0}]},
+                            wind: {...prev.wind, real: [...prev.wind.real, {x: newTime, y: msg.wind_mps ?? 0}]},
+                        };
+                    });
+                } else if (msg.type === "forecast_update") {
+                    console.log("Received forecast update ping! Refetching forecast lines...");
+                    const params = getTimeBounds();
+                    fetchForecastData(params);
+                }
+            };
+
+            ws.onerror = (e) => console.log("WS Error", e);
+
+            ws.onclose = () => {
+                console.log("WS Closed. Attempting reconnect in 5s...");
+                reconnectTimer = setTimeout(connectWebSocket, 5000);
+            };
+        };
+
+        connectWebSocket();
+
+        return () => {
+            clearTimeout(reconnectTimer);
+            if (ws) ws.close();
+        };
+    }, [currentDate, deviceId, isToday]);
 
     return (
         <ScrollView style={styles.container} contentContainerStyle={{paddingBottom: 40}}>

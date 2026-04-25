@@ -13,7 +13,7 @@
 
 ## Faza 5: Aplikacja i Autoryzacja
 - [ ] **Keycloak (Auth):** Wdrożenie serwera tożsamości (OIDC/OAuth2). Konfiguracja ról i zabezpieczenie Endpointów Backend API.
-- [ ] **Mobile App:** Napisanie aplikacji klienckiej konsumującej API. Integracja logowania przez Keycloak.
+- [ ] **Mobile App:** logowanie, cache, powiadomienia, biometria
 
 # Usefull commands:
 kubectl create secret generic github-runner-creds \

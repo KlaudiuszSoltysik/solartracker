@@ -38,6 +38,8 @@ logging.basicConfig(
 
 logger = logging.getLogger("solar-forecast")
 
+logging.getLogger("aio_pika").setLevel(logging.WARNING)
+
 
 def get_mongo_assets():
     mongo_uri = f"mongodb://{MONGODB_USERNAME}:{MONGODB_PASSWORD}@{MONGODB_HOST}:{MONGODB_PORT}/?authSource=admin"
