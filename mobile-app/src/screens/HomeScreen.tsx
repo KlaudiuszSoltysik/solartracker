@@ -60,7 +60,7 @@ export default function HomeScreen({navigation}: Props) {
             {viewMode === "list" && (
                 <FlatList
                     data={assets}
-                    contentContainerStyle={{ paddingBottom: 20 }}
+                    contentContainerStyle={{paddingBottom: 20}}
                     keyExtractor={(item, index) => item.device_id || index.toString()}
                     renderItem={({item}) => (
                         <TouchableOpacity
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
         shadowColor: "#000",
         shadowOpacity: 0.1,
         shadowRadius: 5,
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: {width: 0, height: 2},
         borderWidth: 1,
         borderColor: "#eee",
     },

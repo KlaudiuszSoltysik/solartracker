@@ -10,8 +10,8 @@ import {
 } from "victory-native";
 import {API_BASE_URL} from "../../App";
 
-export default function AssetScreen({ route }: any) {
-    const { deviceId, assetType, name, maxPowerW, lat, lon } = route.params;
+export default function AssetScreen({route}: any) {
+    const {deviceId, assetType, name, maxPowerW, lat, lon} = route.params;
 
     const [currentDate, setCurrentDate] = useState(new Date());
     const [loading, setLoading] = useState(false);
@@ -101,7 +101,7 @@ export default function AssetScreen({ route }: any) {
     }, [currentDate]);
 
     return (
-        <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
+        <ScrollView style={styles.container} contentContainerStyle={{paddingBottom: 40}}>
             <View style={styles.metaCard}>
                 <Text style={styles.metaTitle}>{name} <Text style={styles.metaBadge}>({assetType.toUpperCase()})</Text></Text>
                 <View style={styles.metaRow}>
@@ -136,7 +136,7 @@ export default function AssetScreen({ route }: any) {
             </View>
 
             {loading ? (
-                <ActivityIndicator size="large" color="#8641f4" style={{ marginTop: 50 }} />
+                <ActivityIndicator size="large" color="#8641f4" style={{marginTop: 50}}/>
             ) : (
                 data && (
                     <>
@@ -201,7 +201,7 @@ const MetricChart = ({title, realData, forecastData, ySuffix, isToday}: {
                 height={250}
                 scale={{x: "time"}}
                 domainPadding={{y: 20}}
-                padding={{ top: 20, bottom: 40, left: 75, right: 20 }}
+                padding={{top: 20, bottom: 40, left: 75, right: 20}}
                 containerComponent={<VictoryZoomContainer zoomDimension="x" allowZoom={true} allowPan={true}/>}
             >
                 <VictoryAxis
@@ -220,10 +220,10 @@ const MetricChart = ({title, realData, forecastData, ySuffix, isToday}: {
                         dependentAxis
                         axisValue={now}
                         style={{
-                            axis: { stroke: "#ff4757", strokeWidth: 1.5, strokeDasharray: "5,5" },
-                            tickLabels: { fill: "transparent" },
-                            ticks: { stroke: "transparent" },
-                            grid: { stroke: "transparent" }
+                            axis: {stroke: "#ff4757", strokeWidth: 1.5, strokeDasharray: "5,5"},
+                            tickLabels: {fill: "transparent"},
+                            ticks: {stroke: "transparent"},
+                            grid: {stroke: "transparent"}
                         }}
                     />
                 )}
@@ -283,11 +283,24 @@ const styles = StyleSheet.create({
     },
     chartTitle: {fontSize: 16, fontWeight: "bold", color: "#444", textAlign: "center", marginTop: 8, marginBottom: -10},
 
-    dateControlContainer: { marginBottom: 16, alignItems: "center" },
-    dateButtonsRow: { flexDirection: "row", justifyContent: "space-between", width: "100%", marginBottom: 8 },
-    dateBtn: { backgroundColor: "#e0e0e0", paddingVertical: 8, paddingHorizontal: 16, borderRadius: 8, minWidth: 80, alignItems: "center" },
-    dateBtnText: { color: "#333", fontWeight: "600" },
-    dateBtnToday: { backgroundColor: "#8641f4", paddingVertical: 8, paddingHorizontal: 24, borderRadius: 8, elevation: 2 },
-    dateBtnTextToday: { color: "white", fontWeight: "bold" },
-    currentDateText: { fontSize: 16, fontWeight: "bold", color: "#555" }
+    dateControlContainer: {marginBottom: 16, alignItems: "center"},
+    dateButtonsRow: {flexDirection: "row", justifyContent: "space-between", width: "100%", marginBottom: 8},
+    dateBtn: {
+        backgroundColor: "#e0e0e0",
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+        borderRadius: 8,
+        minWidth: 80,
+        alignItems: "center"
+    },
+    dateBtnText: {color: "#333", fontWeight: "600"},
+    dateBtnToday: {
+        backgroundColor: "#8641f4",
+        paddingVertical: 8,
+        paddingHorizontal: 24,
+        borderRadius: 8,
+        elevation: 2
+    },
+    dateBtnTextToday: {color: "white", fontWeight: "bold"},
+    currentDateText: {fontSize: 16, fontWeight: "bold", color: "#555"}
 });

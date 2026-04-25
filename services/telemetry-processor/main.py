@@ -84,14 +84,14 @@ def process_message(ch, method, properties, body):
         voltage = payload.get("voltage_v", 0)
         current = payload.get("current_a", 0)
         payload["power_w"] = round(voltage * current, 2)
-        
+
         payload["time"] = dt_time.isoformat()
 
         payload.pop("voltage_v", None)
         payload.pop("current_a", None)
 
         processed_routing_key = f"processed.telemetry.{device_id}"
-        
+
         ch.basic_publish(
             exchange="processed_telemetry",
             routing_key=processed_routing_key,

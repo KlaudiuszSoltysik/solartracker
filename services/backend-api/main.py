@@ -231,9 +231,9 @@ def get_energy_forecast(
         conn.close()
 
 
-@app.get("/api/v1/current-state/{device_id}")
-def get_current_state(device_id: str):
-    pass
+# @app.get("/api/v1/current-state/{device_id}")
+# def get_current_state(device_id: str):
+#     pass
 
 
 @app.get("/api/v1/assets")
@@ -269,8 +269,8 @@ def get_all_assets():
         client.close()
 
 
-@app.websocket("/api/v1/ws/telemetry/{device_id}")
-async def websocket_telemetry(websocket: WebSocket, device_id: str):
+@app.websocket("/api/v1/ws/live/{device_id}")
+async def websocket_live_stream(websocket: WebSocket, device_id: str):
     await manager.connect(websocket, device_id)
     try:
         while True:

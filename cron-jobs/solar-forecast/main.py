@@ -144,7 +144,8 @@ def main():
         query = """
                 INSERT INTO forecast (time, device_id, power_w, irradiance_wm2, temp_c, forecasted_at)
                 VALUES %s ON CONFLICT (time, device_id) 
-                DO UPDATE SET
+                DO
+                UPDATE SET
                     power_w = EXCLUDED.power_w,
                     irradiance_wm2 = EXCLUDED.irradiance_wm2,
                     temp_c = EXCLUDED.temp_c,
@@ -182,7 +183,7 @@ def main():
             rabbit_conn.close()
             logger.info("Sent update pings to RabbitMQ successfully.")
         except Exception as mq_err:
-             logger.error(f"Failed to send ping to RabbitMQ: {mq_err}")
+            logger.error(f"Failed to send ping to RabbitMQ: {mq_err}")
 
     except Exception as e:
         logger.error(f"Error during forecasting DB save: {e}.", exc_info=True)
