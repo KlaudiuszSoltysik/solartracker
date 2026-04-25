@@ -12,6 +12,7 @@ spec:
     helm:
       values: |
         loki:
+          isDefault: false
           config:
             table_manager:
               retention_deletes_enabled: true
