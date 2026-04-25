@@ -41,6 +41,8 @@ def on_connect(client, userdata, flags, rc):
     else:
         logger.error(f"Connection error, code: {rc}.", exc_info=True)
 
+def on_disconnect(client, userdata, disconnect_flags, rc):
+    logger.warning(f"Disconnected from MQTT broker! Code: {rc}")
 
 def on_message(client, userdata, msg):
     global current_yaw_angle
@@ -71,6 +73,7 @@ def main():
     client = mqtt.Client(CallbackAPIVersion.VERSION2, client_id=DEVICE_ID)
     client.username_pw_set(RABBITMQ_USERNAME, RABBITMQ_PASSWORD)
     client.on_connect = on_connect
+    client.on_disconnect = on_disconnect
     client.on_message = on_message
 
     while True:
@@ -85,12 +88,25 @@ def main():
     client.loop_start()
 
     while True:
+        if not client.is_connected():
+            logger.warning("Not connected to broker. Waiting...")
+            time.sleep(2)
+            continue
+
         telemetry_data = generate_mock_telemetry()
         payload_json = json.dumps(telemetry_data)
 
         info = client.publish(telemetry_topic, payload_json, qos=1)
-
-        logger.info(f"Sent telemetry: {payload_json}.")
+        
+        try:
+            info.wait_for_publish(timeout=2.0)
+            
+            if info.is_published():
+                logger.info(f"Sent telemetry: {payload_json}.")
+            else:
+                logger.error("Failed to send telemetry: Timeout reached.")
+        except RuntimeError as e:
+            logger.error(f"Failed to send telemetry: {e}")
 
         time.sleep(FREQ)
 

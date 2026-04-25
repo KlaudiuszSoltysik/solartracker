@@ -3,6 +3,9 @@ export type RootStackParamList = {
     Asset: {
         deviceId: string;
         assetType: string;
-        name?: string;
+        name: string;
+        maxPowerW: number;
+        lat: number;
+        lon: number;
     };
 };
