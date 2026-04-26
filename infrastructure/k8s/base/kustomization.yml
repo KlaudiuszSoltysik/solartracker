@@ -31,7 +31,7 @@ resources:
   - keycloak/deployment.yml
   - keycloak/secret.yml
 
-  # - backend-api/deployment.yml
-  # - telemetry-processor/deployment.yml
-  # - solar-forecast/cronjob.yml
+  - backend-api/deployment.yml
+  - telemetry-processor/deployment.yml
+  - solar-forecast/cronjob.yml
   

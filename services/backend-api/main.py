@@ -44,6 +44,7 @@ logger = logging.getLogger("backend-api")
 logging.getLogger("fastapi").setLevel(logging.ERROR)
 logging.getLogger("uvicorn").setLevel(logging.ERROR)
 logging.getLogger("uvicorn.access").setLevel(logging.ERROR)
+logging.getLogger("uvicorn.error").setLevel(logging.ERROR)
 logging.getLogger("aio_pika").setLevel(logging.ERROR)
 
 
@@ -283,4 +284,4 @@ async def websocket_live_stream(websocket: WebSocket, device_id: str):
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8001)
+    uvicorn.run(app, host="0.0.0.0", port=8001, log_level="error")
