@@ -28,6 +28,9 @@ resources:
   - infrastructure-runner/rbac.yml
   - infrastructure-runner/secret.yml
 
+  - keycloak/deployment.yml
+  - keycloak/secret.yml
+
   # - backend-api/deployment.yml
   # - telemetry-processor/deployment.yml
   # - solar-forecast/cronjob.yml
