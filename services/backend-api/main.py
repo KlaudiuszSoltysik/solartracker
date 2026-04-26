@@ -41,9 +41,10 @@ logging.basicConfig(
 
 logger = logging.getLogger("backend-api")
 
-logging.getLogger("uvicorn").setLevel(logging.WARNING)
-logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
-logging.getLogger("aio_pika").setLevel(logging.WARNING)
+logging.getLogger("fastapi").setLevel(logging.ERROR)
+logging.getLogger("uvicorn").setLevel(logging.ERROR)
+logging.getLogger("uvicorn.access").setLevel(logging.ERROR)
+logging.getLogger("aio_pika").setLevel(logging.ERROR)
 
 
 def get_postgres_connection():

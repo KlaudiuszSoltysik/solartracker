@@ -38,7 +38,8 @@ logging.basicConfig(
 
 logger = logging.getLogger("solar-forecast")
 
-logging.getLogger("aio_pika").setLevel(logging.WARNING)
+logging.getLogger("aio_pika").setLevel(logging.ERROR)
+logging.getLogger("pika").setLevel(logging.ERROR)
 
 
 def get_mongo_assets():

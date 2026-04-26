@@ -6,7 +6,7 @@
     "start": "expo start",
     "android": "expo start --android",
     "web": "expo start --web",
-    "start:wsl": "REACT_NATIVE_PACKAGER_HOSTNAME=$(node get_network_local_ip.js) expo start -c"
+    "start:wsl": "REACT_NATIVE_PACKAGER_HOSTNAME=$(node get_network_local_ip.js) expo start -p 8082"
   },
   "dependencies": {
     "@expo/metro-runtime": "~6.1.2",

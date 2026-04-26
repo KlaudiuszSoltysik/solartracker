@@ -31,7 +31,7 @@ logging.basicConfig(
 
 logger = logging.getLogger("telemetry_processor")
 
-logging.getLogger("pika").setLevel(logging.WARNING)
+logging.getLogger("pika").setLevel(logging.ERROR)
 
 
 def get_db_connection():

@@ -10,20 +10,18 @@ import {
 } from "victory-native";
 import {API_BASE_URL} from "../../App";
 
-const WS_BASE_URL = API_BASE_URL.replace(/^http/, "ws");
-
 export default function AssetScreen({route}: any) {
     const {deviceId, assetType, name, maxPowerW, lat, lon} = route.params;
 
     const [currentDate, setCurrentDate] = useState(new Date());
     const [loading, setLoading] = useState(false);
 
-    const [data, setData] = useState<{
-        power: { real: any[], forecast: any[] },
-        irradiance: { real: any[], forecast: any[] },
-        temp: { real: any[], forecast: any[] },
-        wind: { real: any[], forecast: any[] }
-    } | null>(null);
+    const [data, setData] = useState({
+        power: { real: [], forecast: [] },
+        irradiance: { real: [], forecast: [] },
+        temp: { real: [], forecast: [] },
+        wind: { real: [], forecast: [] }
+    });
 
     const handlePreviousDay = () => {
         const prev = new Date(currentDate);
@@ -120,6 +118,8 @@ export default function AssetScreen({route}: any) {
         let reconnectTimer: NodeJS.Timeout;
 
         const connectWebSocket = () => {
+            const WS_BASE_URL = API_BASE_URL.replace(/^http/, 'ws');
+
             ws = new WebSocket(`${WS_BASE_URL}/ws/live/${deviceId}`);
 
             ws.onopen = () => console.log(`WS connected for ${deviceId}`);
@@ -271,7 +271,7 @@ const MetricChart = ({title, realData, forecastData, ySuffix, isToday}: {
                 <VictoryAxis
                     tickFormat={(x) => {
                         const d = new Date(x);
-                        return `${d.getUTCHours()}:${d.getUTCMinutes().toString().padStart(2, "0")}`;
+                        return `${d.getHours()}:${d.getMinutes().toString().padStart(2, "0")}`;
                     }}
                     fixLabelOverlap
                     style={{tickLabels: {fontSize: 10, padding: 5}}}

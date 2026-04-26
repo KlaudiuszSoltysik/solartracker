@@ -2,6 +2,7 @@ const { exec } = require("child_process");
 require("dotenv").config({ path: "./.env.local" });
 
 exec(
+    `netsh.exe interface ip show address "${process.env.LOCAL_CONNECTION_INTERFACE_NAME}"`,
     (error, stdout, stderr) => {
         if (error) {
             return;
@@ -20,5 +21,6 @@ exec(
                 }
             }
         }
+
     }
 );

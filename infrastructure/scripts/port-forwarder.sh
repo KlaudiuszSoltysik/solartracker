@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "🔌 Port-Forwarding..."
-echo "========================================================"
+echo "==========================================================================================================="
 
 cleanup() {
     kill $(jobs -p) 2>/dev/null
@@ -17,8 +17,8 @@ echo "🐘 TimescaleDB:     http://localhost:5432"
 kubectl port-forward svc/mongodb 27017:27017 > /dev/null 2>&1 &
 echo "🍃 MongoDB:         http://localhost:27017"
 
-kubectl port-forward svc/rabbitmq 15672:15672 5672:5672 > /dev/null 2>&1 &
-echo "🐰 RabbitMQ:        http://localhost:15672"
+kubectl port-forward svc/rabbitmq 15672:15672 5672:5672 1883:1883 > /dev/null 2>&1 &
+echo "🐰 RabbitMQ:        http://localhost:15672          http://localhost:5672          http://localhost:1883"
 
 kubectl port-forward svc/argocd-server -n argocd 8080:443 > /dev/null 2>&1 &
 echo "🦑 ArgoCD:          http://localhost:8080"
@@ -32,6 +32,6 @@ echo "🤖 Ollama:          http://localhost:11434"
 kubectl port-forward svc/backend-api 8000:8000 > /dev/null 2>&1 &
 echo "⚙️ Backend API:     http://localhost:8000/docs"
 
-echo "========================================================"
+echo "==========================================================================================================="
 
 wait
