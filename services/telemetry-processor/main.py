@@ -3,7 +3,7 @@ import logging
 import os
 import sys
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 
 import pika
 import psycopg2
@@ -56,7 +56,7 @@ def process_message(ch, method, properties, body):
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        dt_time = datetime.fromtimestamp(payload["timestamp"])
+        dt_time = datetime.fromtimestamp(payload["timestamp"], tz=timezone.utc)
 
         insert_query = """
                        INSERT INTO telemetry (time, device_id, voltage_v, current_a, irradiance_wm2, temp_c,

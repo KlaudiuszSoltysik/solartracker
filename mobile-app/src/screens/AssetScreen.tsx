@@ -1,4 +1,5 @@
-import React, {useEffect, useState} from "react";
+import React, {useCallback, useEffect, useState} from "react";
+import {useFocusEffect} from '@react-navigation/native';
 import {ActivityIndicator, Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {
     VictoryAxis,
@@ -17,10 +18,10 @@ export default function AssetScreen({route}: any) {
     const [loading, setLoading] = useState(false);
 
     const [data, setData] = useState({
-        power: { real: [], forecast: [] },
-        irradiance: { real: [], forecast: [] },
-        temp: { real: [], forecast: [] },
-        wind: { real: [], forecast: [] }
+        power: {real: [], forecast: []},
+        irradiance: {real: [], forecast: []},
+        temp: {real: [], forecast: []},
+        wind: {real: [], forecast: []}
     });
 
     const handlePreviousDay = () => {
@@ -48,10 +49,10 @@ export default function AssetScreen({route}: any) {
 
     const getTimeBounds = () => {
         const start = new Date(currentDate);
-        start.setUTCHours(0, 0, 0, 0);
+        start.setHours(0, 0, 0, 0);
 
         const end = new Date(currentDate);
-        end.setUTCHours(23, 59, 59, 999);
+        end.setHours(23, 59, 59, 999);
 
         return `?start_date=${start.toISOString()}&end_date=${end.toISOString()}`;
     };
@@ -111,58 +112,66 @@ export default function AssetScreen({route}: any) {
     }, [currentDate]);
 
 
-    useEffect(() => {
-        if (!isToday) return;
+    useFocusEffect(
+        useCallback(() => {
+            if (!isToday) return;
 
-        let ws: WebSocket;
-        let reconnectTimer: NodeJS.Timeout;
+            let ws: WebSocket;
+            let reconnectTimer: NodeJS.Timeout;
+            let isActive = true;
 
-        const connectWebSocket = () => {
-            const WS_BASE_URL = API_BASE_URL.replace(/^http/, 'ws');
+            const connectWebSocket = () => {
+                const WS_BASE_URL = API_BASE_URL.replace(/^http/, 'ws');
+                ws = new WebSocket(`${WS_BASE_URL}/ws/live/${deviceId}`);
 
-            ws = new WebSocket(`${WS_BASE_URL}/ws/live/${deviceId}`);
+                ws.onopen = () => console.log(`WebSocket connected for ${deviceId}`);
 
-            ws.onopen = () => console.log(`WS connected for ${deviceId}`);
+                ws.onmessage = (event) => {
+                    const msg = JSON.parse(event.data);
 
-            ws.onmessage = (event) => {
-                const msg = JSON.parse(event.data);
+                    if (msg.type === "live_telemetry") {
+                        setData(prev => {
+                            const newTime = new Date(msg.time);
+                            return {
+                                ...prev,
+                                power: {...prev.power, real: [...prev.power.real, {x: newTime, y: msg.power_w ?? 0}]},
+                                irradiance: {
+                                    ...prev.irradiance,
+                                    real: [...prev.irradiance.real, {x: newTime, y: msg.irradiance_wm2 ?? 0}]
+                                },
+                                temp: {...prev.temp, real: [...prev.temp.real, {x: newTime, y: msg.temp_c ?? 0}]},
+                                wind: {...prev.wind, real: [...prev.wind.real, {x: newTime, y: msg.wind_mps ?? 0}]},
+                            };
+                        });
+                    } else if (msg.type === "forecast_update") {
+                        console.log("Received forecast update ping!");
+                        const params = getTimeBounds();
+                        fetchForecastData(params);
+                    }
+                };
 
-                if (msg.type === "live_telemetry") {
-                    setData(prev => {
-                        const newTime = new Date(msg.time);
-                        return {
-                            ...prev,
-                            power: {...prev.power, real: [...prev.power.real, {x: newTime, y: msg.power_w ?? 0}]},
-                            irradiance: {
-                                ...prev.irradiance,
-                                real: [...prev.irradiance.real, {x: newTime, y: msg.irradiance_wm2 ?? 0}]
-                            },
-                            temp: {...prev.temp, real: [...prev.temp.real, {x: newTime, y: msg.temp_c ?? 0}]},
-                            wind: {...prev.wind, real: [...prev.wind.real, {x: newTime, y: msg.wind_mps ?? 0}]},
-                        };
-                    });
-                } else if (msg.type === "forecast_update") {
-                    console.log("Received forecast update ping! Refetching forecast lines...");
-                    const params = getTimeBounds();
-                    fetchForecastData(params);
+                ws.onerror = (e) => console.log("WebSocket Error", e);
+
+                ws.onclose = () => {
+                    if (isActive) {
+                        console.log("WebSocket Closed. Attempting reconnect in 5s...");
+                        reconnectTimer = setTimeout(connectWebSocket, 5000);
+                    }
+                };
+            };
+
+            connectWebSocket();
+
+            return () => {
+                isActive = false;
+                clearTimeout(reconnectTimer);
+                if (ws) {
+                    console.log(`Closing WebSocket for ${deviceId}`);
+                    ws.close();
                 }
             };
-
-            ws.onerror = (e) => console.log("WS Error", e);
-
-            ws.onclose = () => {
-                console.log("WS Closed. Attempting reconnect in 5s...");
-                reconnectTimer = setTimeout(connectWebSocket, 5000);
-            };
-        };
-
-        connectWebSocket();
-
-        return () => {
-            clearTimeout(reconnectTimer);
-            if (ws) ws.close();
-        };
-    }, [currentDate, deviceId, isToday]);
+        }, [currentDate, deviceId, isToday])
+    );
 
     return (
         <ScrollView style={styles.container} contentContainerStyle={{paddingBottom: 40}}>
