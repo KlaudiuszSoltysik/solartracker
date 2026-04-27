@@ -20,7 +20,7 @@ resources:
   - keycloak/application.yml
   - keycloak/secret.yml
 
-  - mongobd/application.yml
+  - mongodb/application.yml
   - mongodb/secret.yml
 
   - observability/loki-application.yml
