@@ -15,6 +15,7 @@ spec:
           prometheusSpec:
             scrapeInterval: "30s"
             retention: "48h"
+
         grafana:         
           admin:
             existingSecret: "grafana-creds"
@@ -22,6 +23,10 @@ spec:
             passwordKey: password
           deploymentStrategy:
             type: Recreate
+          
+        global:
+          imagePullSecrets:
+            - ghcr-secret
   destination:
     server: "https://kubernetes.default.svc"
     namespace: observability
