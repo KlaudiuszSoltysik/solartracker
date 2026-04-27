@@ -11,7 +11,7 @@ resources:
 
   - cloudflared/application.yml
 
-  - esp32-simulator/application.yml
+  - esp32-simulator/deployment.yml
 
   - infrastructure-runner/application.yml
   - infrastructure-runner/rbac.yml
