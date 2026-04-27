@@ -7,7 +7,7 @@ resources:
   - ai-agent/rbac.yml
   - ai-agent/secret.yml
 
-  - backend-api/application.yml
+  - backend-api/deployment.yml
 
   - cloudflared/application.yml
 
@@ -30,9 +30,9 @@ resources:
   - rabbitmq/application.yml
   - rabbitmq/secret.yml
   
-  - solar-forecast/application.yml
+  - solar-forecast/deployment.yml
 
-  - telemetry-processor/application.yml
+  - telemetry-processor/deployment.yml
 
   - timescaledb/application.yml
   - timescaledb/secret.yml
