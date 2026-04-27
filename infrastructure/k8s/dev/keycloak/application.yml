@@ -18,8 +18,6 @@ spec:
         proxy: edge
         postgresql:
           enabled: true
-          image:
-            tag: "16"
           auth:
             username: "keycloak"
             database: "keycloak_db"
