@@ -14,10 +14,8 @@ spec:
         auth:
           adminUser: admin
           existingSecret: "keycloak-creds"
-        
         production: false 
         proxy: edge
-        
         postgresql:
           enabled: true
           image:
@@ -26,10 +24,6 @@ spec:
             username: "keycloak"
             database: "keycloak_db"
             existingSecret: "keycloak-creds"
-
-        global:
-          imagePullSecrets:
-            - ghcr-secret
   destination:
     server: "https://kubernetes.default.svc"
     namespace: infrastructure

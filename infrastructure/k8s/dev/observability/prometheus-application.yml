@@ -23,9 +23,6 @@ spec:
           deploymentStrategy:
             type: Recreate
             rollingUpdate: null
-        global:
-          imagePullSecrets:
-            - ghcr-secret
   destination:
     server: "https://kubernetes.default.svc"
     namespace: observability
