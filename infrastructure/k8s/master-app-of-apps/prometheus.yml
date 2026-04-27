@@ -15,7 +15,6 @@ spec:
           prometheusSpec:
             scrapeInterval: "30s"
             retention: "48h"
-
         grafana:         
           admin:
             existingSecret: "grafana-creds"
@@ -23,7 +22,7 @@ spec:
             passwordKey: password
           deploymentStrategy:
             type: Recreate
-          
+            rollingUpdate: null
         global:
           imagePullSecrets:
             - ghcr-secret

@@ -19,6 +19,9 @@ spec:
               retention_period: 48h
         promtail:
           enabled: true
+        global:
+          imagePullSecrets:
+            - ghcr-secret
   destination:
     server: "https://kubernetes.default.svc"
     namespace: observability
