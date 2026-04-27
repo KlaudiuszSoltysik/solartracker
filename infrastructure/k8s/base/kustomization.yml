@@ -14,8 +14,6 @@ resources:
   - mongodb/application.yml
   - mongodb/secret.yml
 
-  - observability/loki-app.yml
-  - observability/prometheus-app.yml
   - observability/secret.yml
 
   - ai-agent/github-runner.yml
