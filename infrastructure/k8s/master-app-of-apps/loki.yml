@@ -17,10 +17,8 @@ spec:
             table_manager:
               retention_deletes_enabled: true
               retention_period: 48h
-
         promtail:
           enabled: true
-        
         global:
           imagePullSecrets:
             - ghcr-secret
