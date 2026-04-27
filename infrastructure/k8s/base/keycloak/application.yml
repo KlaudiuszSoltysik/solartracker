@@ -6,8 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: oci://registry-1.docker.io
-    chart: bitnamicharts/keycloak
+    repoURL: https://charts.bitnami.com/bitnami
     targetRevision: "21.1.0"
     helm:
       values: |
