@@ -2,8 +2,43 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  - ../base
-  - esp32-simulator/deployment.yml
+  - ai-agent/github-runner.yml
+  - ai-agent/ollama.yml
+  - ai-agent/rbac.yml
+  - ai-agent/secret.yml
+
+  - backend-api/application.yml
+
+  - cloudflared/application.yml
+
+  - esp32-simulator/application.yml
+
+  - infrastructure-runner/application.yml
+  - infrastructure-runner/rbac.yml
+  - infrastructure-runner/secret.yml
+
+  - keycloak/application.yml
+  - keycloak/secret.yml
+
+  - mongobd/application.yml
+  - mongodb/secret.yml
+
+  - observability/loki-application.yml
+  - observability/prometheus-application.yml
+  - observability/secret.yml
+
+  - rabbitmq/application.yml
+  - rabbitmq/secret.yml
+  
+  - solar-forecast/application.yml
+
+  - telemetry-processor/application.yml
+
+  - timescaledb/application.yml
+  - timescaledb/secret.yml
+
+  - ghcr-secret.yml
+  - namespaces.yml
 
 images:
   - name: backend-api
@@ -18,3 +53,4 @@ images:
   - name: solar-forecast
     newName: ghcr.io/klaudiuszsoltysik/solartracker/solar-forecast
     newTag: master
+  
