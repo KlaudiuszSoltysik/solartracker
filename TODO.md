@@ -26,3 +26,5 @@ kubeseal --cert mycert.pem --format=yaml < raw-secret.yml > infrastructure/k8s/b
 rm raw-secret.yml
 
 kubectl get secret ai-agent-creds -n ai-agent -o jsonpath="{.data.github-token}" | base64 --decode ; echo
+
+kubectl apply -f infrastructure/k8s/base/observability/prometheus-app.yml -n argocd
