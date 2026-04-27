@@ -30,7 +30,7 @@ resources:
   - rabbitmq/application.yml
   - rabbitmq/secret.yml
   
-  - solar-forecast/deployment.yml
+  - solar-forecast/cronjob.yml
 
   - telemetry-processor/deployment.yml
 
