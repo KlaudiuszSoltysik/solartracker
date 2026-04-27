@@ -29,7 +29,6 @@ resources:
   - infrastructure-runner/rbac.yml
   - infrastructure-runner/secret.yml
 
-  - keycloak/application.yml
   - keycloak/secret.yml
 
   - backend-api/deployment.yml
