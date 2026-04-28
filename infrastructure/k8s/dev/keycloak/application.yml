@@ -8,7 +8,8 @@ spec:
   source:
     repoURL: https://charts.bitnami.com/bitnami
     chart: keycloak
-    targetRevision: "25.2.0"
+    targetRevision: "*"
+    # targetRevision: "25.2.0"
     helm:
       values: |
         auth:
