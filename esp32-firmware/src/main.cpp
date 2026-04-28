@@ -4,6 +4,7 @@
 #include "time_manager.h"
 #include "sensor_manager.h"
 #include "metrics.h"
+#include "motor_controller.h"
 
 
 void setup() {
@@ -13,28 +14,35 @@ void setup() {
   initClock();
   initSensors();
   initMetrics(METRICS_INTERVAL);
+  initMotor();
 }
 
 void loop() {
-// SensorData currentData = readAllSensors();
-  
-//   Serial.printf("Panel: %.2fV | %.2fmA | Nasłonecznienie L:%u R:%u\n", 
-//                 currentData.voltage, currentData.current, 
-//                 currentData.luxLeft, currentData.luxRight);
-                
-//   delay(2000); 
 
   if (isTimeToCollectMetrics()) {
         
         Metrics actualMetrics = collectMetrics();
         
-        Serial.printf("Device ID:        %s\n", actualMetrics.device_id.c_str());         
-        Serial.printf("Free RAM:        %u bytes\n", actualMetrics.freeRam);
-        Serial.printf("Total RAM:    %u bytes\n", actualMetrics.totalRam);
-        Serial.printf("Work time:  %u s\n", actualMetrics.uptime);
-        Serial.printf("Last task time:     %u ms\n", actualMetrics.lastTaskDuration);
-        Serial.printf("Timestamp:        %lu\n", actualMetrics.timestamp);        
-        Serial.println("======================");
+        Serial.printf("Device ID:     %s\n", actualMetrics.device_id.c_str());         
+        Serial.printf("Free RAM:      %u bytes\n", actualMetrics.freeRam);
+        Serial.printf("Total RAM:     %u bytes\n", actualMetrics.totalRam);
+        Serial.printf("Work time:     %u s\n", actualMetrics.uptime);
+        Serial.printf("Last task time:%u ms\n", actualMetrics.lastTaskDuration);
+        Serial.printf("Timestamp:     %lu\n", actualMetrics.timestamp);        
+        Serial.println("============================");
         
     }
+
+  if (isTimeToReadSensors()) {
+    SensorData data = readAllSensors(true);
+    Serial.printf("Voltage:       %.2f V\n", data.voltage);
+    Serial.printf("Current:       %.2f mA\n", data.current);
+    Serial.printf("Power:         %.2f mW\n", data.power);
+    Serial.printf("Temperature:   %.2f C\n", data.temperature);
+    Serial.printf("Humidity:      %.2f %%\n", data.humidity);
+    Serial.printf("Lux (Left):    %lu lux\n", data.luxLeft);
+    Serial.printf("Lux (Right):   %lu lux\n", data.luxRight);
+    Serial.println("============================");
+
+}
 }

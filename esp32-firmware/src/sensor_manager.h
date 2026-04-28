@@ -18,7 +18,9 @@ struct SensorData {
 
 // sensor initialization
 void initSensors();
-// read and calculate data drom sensors
-SensorData readAllSensors();
+// Read and calculate data from sensors. If useSimulation is true, return simulated data instead of real sensor readings.
+SensorData readAllSensors(bool useSimulation = false);
+// Checking, is it time to start reading sensors
+bool isTimeToReadSensors();
 
 #endif

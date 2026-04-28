@@ -38,12 +38,14 @@
 #define MICROSTEPPING 8       // microstep parameter (define on stepper motor driver microswitches)
 #define MOTOR_MAX_SPEED 1000  // max speed (steps per sec)
 #define MOTOR_ACCEL 500       // acceleration
+#define GEAR_RATIO 5.0f       // gearbox ratio (number of motor revolutions needed for one full panel rotation)
 
 // =================================================================
 // --- SYSTEM AND NETWORK PARAMETERS ---
 // =================================================================
-#define METRICS_INTERVAL 10.0f // metrics sending frequenc
-#define TELEMETRY_INTERVAL 5000 // datat sending frequency
+#define METRICS_INTERVAL 10.0f // metrics sending frequency
+#define TELEMETRY_INTERVAL 5000 // data sending frequency (milliseconds)
+#define SENSORS_READ_INTERVAL 2.0f // sensors reading frequency (seconds)
 #define WIFI_SSID "GooglePixel"
 #define WIFI_PASS "12345678"
 
