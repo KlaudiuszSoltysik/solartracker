@@ -6,8 +6,8 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://charts.bitnami.com/bitnami
     chart: keycloak
+    repoURL: https://grafana.github.io/helm-charts
     targetRevision: "*"
     helm:
       values: |
