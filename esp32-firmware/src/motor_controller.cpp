@@ -68,7 +68,7 @@ void stopMotor() {
     Serial.println("[MOTOR] Emergency stop!");
 }
 
-void moveMotorToHomePosition() {
+bool moveMotorToHomePosition() {
     // Move in one direction until the limit switch is triggered
     // Assuming home position is at the left limit switch
     while (digitalRead(PIN_LIMIT_LEFT) == HIGH) { // While not at home position
@@ -90,4 +90,5 @@ void moveMotorToHomePosition() {
         yield();
     }
     Serial.println("[MOTOR] Moved to home position.");
+    return true; // Indicate successful homing
 }
