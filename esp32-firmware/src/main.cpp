@@ -6,8 +6,8 @@
 #include "metrics.h"
 #include "motor_controller.h"
 
-
-void setup() {
+void setup()
+{
   Serial.begin(115200);
   delay(1000);
   setupWifi();
@@ -17,23 +17,25 @@ void setup() {
   initMotor();
 }
 
-void loop() {
+void loop()
+{
+  // Temporary simulation of metrics and sensors data collection. Replace with real data collection in the future.
+  if (isTimeToCollectMetrics())
+  {
 
-  if (isTimeToCollectMetrics()) {
-        
-        Metrics actualMetrics = collectMetrics();
-        
-        Serial.printf("Device ID:     %s\n", actualMetrics.device_id.c_str());         
-        Serial.printf("Free RAM:      %u bytes\n", actualMetrics.freeRam);
-        Serial.printf("Total RAM:     %u bytes\n", actualMetrics.totalRam);
-        Serial.printf("Work time:     %u s\n", actualMetrics.uptime);
-        Serial.printf("Last task time:%u ms\n", actualMetrics.lastTaskDuration);
-        Serial.printf("Timestamp:     %lu\n", actualMetrics.timestamp);        
-        Serial.println("============================");
-        
-    }
+    Metrics actualMetrics = collectMetrics();
 
-  if (isTimeToReadSensors()) {
+    Serial.printf("Device ID:     %s\n", actualMetrics.device_id.c_str());
+    Serial.printf("Free RAM:      %u bytes\n", actualMetrics.freeRam);
+    Serial.printf("Total RAM:     %u bytes\n", actualMetrics.totalRam);
+    Serial.printf("Work time:     %u s\n", actualMetrics.uptime);
+    Serial.printf("Last task time:%u ms\n", actualMetrics.lastTaskDuration);
+    Serial.printf("Timestamp:     %lu\n", actualMetrics.timestamp);
+    Serial.println("============================");
+  }
+
+  if (isTimeToReadSensors())
+  {
     SensorData data = readAllSensors(true);
     Serial.printf("Voltage:       %.2f V\n", data.voltage);
     Serial.printf("Current:       %.2f mA\n", data.current);
@@ -43,6 +45,5 @@ void loop() {
     Serial.printf("Lux (Left):    %lu lux\n", data.luxLeft);
     Serial.printf("Lux (Right):   %lu lux\n", data.luxRight);
     Serial.println("============================");
-
-}
+  }
 }

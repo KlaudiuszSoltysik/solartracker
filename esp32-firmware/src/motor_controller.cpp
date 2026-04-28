@@ -67,3 +67,27 @@ void stopMotor() {
     stepper.stop();
     Serial.println("[MOTOR] Emergency stop!");
 }
+
+void moveMotorToHomePosition() {
+    // Move in one direction until the limit switch is triggered
+    // Assuming home position is at the left limit switch
+    while (digitalRead(PIN_LIMIT_LEFT) == HIGH) { // While not at home position
+        stepper.setSpeed(-MOTOR_MAX_SPEED / 4); // Move at quarter speed towards home
+        stepper.runSpeed();
+        yield(); 
+    }
+    stepper.stop(); // Stop when home position is reached
+    // Optionally, move to current posistion - to be tested
+    // stepper.moveTo(stepper.currentPosition()); 
+    // stepper.run();
+
+    // Reset the current position to zero after homing
+    stepper.setCurrentPosition(0);
+    // Move to a safe position (e.g., 5 degrees) after homing to avoid hitting the switch again
+    moveMotorByAngle(5.0f); // Move 5 degrees away from home position
+    while (stepper.distanceToGo() != 0) {
+        stepper.run();
+        yield();
+    }
+    Serial.println("[MOTOR] Moved to home position.");
+}

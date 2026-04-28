@@ -11,3 +11,6 @@ void moveMotorByAngle(float angle);
 
 // Safety stop
 void stopMotor();
+
+// Move to home position (using limit switch)
+void moveMotorToHomePosition();
