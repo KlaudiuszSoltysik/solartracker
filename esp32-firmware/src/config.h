@@ -47,4 +47,9 @@
 #define WIFI_SSID "GooglePixel"
 #define WIFI_PASS "12345678"
 
+// NTP servers config
+#define NTP_SERVER_1 "pool.ntp.org"
+#define NTP_SERVER_2 "time.nist.gov"
+#define TIME_ZONE "CET-1CEST,M3.5.0,M10.5.0/3"
+
 #endif // CONFIG_H
