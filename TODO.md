@@ -1,18 +1,10 @@
 # 🗺️ SolarTracker: Rozwój Architektury
 
-## Faza 1: Ekspozycja i Infrastruktura
 - [ ] **Grafana:** Dashboardy.
 - [ ] **GH Actions:** Poprawa budowania obrazów żeby budowało tylko jak coś się zmieni i dodać Dockerfile dla infrastructure runnera żeby miał dockera i terraforma, oraz dla ai-agent runnera żeby miał pythona.
-
-## Faza 3: Bezpieczeństwo i IoT
-- [ ] **VPN (OpenVPN):** Postawienie serwera VPN w klastrze. Podłączenie fizycznych układów ESP32 do prywatnej sieci K8s z ominięciem publicznego Wi-Fi.
-
-## Faza 4: Pełna Automatyzacja
+- [ ] **VPN (OpenVPN):** Postawienie serwera VPN w klastrze. Podłączenie fizycznych układów ESP32 do prywatnej sieci K8s z ominięciem publicznego Wi-Fi, albo wystawienie rabbita na zewnątrz i zabezpieczenie go.
 - [ ] **Argo Events:** Nasłuchiwanie na webhooki (GitHub, Docker Registry) i eventy systemowe.
 - [ ] **Argo Workflows:** Uruchamianie zautomatyzowanych zadań (np. budowanie nowych obrazów Dockera, backup bazy, testy E2E) po wyzwoleniu przez Argo Events.
-
-## Faza 5: Aplikacja i Autoryzacja
-- [ ] **Keycloak (Auth):** Wdrożenie serwera tożsamości (OIDC/OAuth2). Konfiguracja ról i zabezpieczenie Endpointów Backend API.
 - [ ] **Mobile App:** logowanie, cache, powiadomienia, biometria
 
 # Usefull commands:

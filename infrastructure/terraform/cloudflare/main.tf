@@ -4,6 +4,7 @@ resource "cloudflare_tunnel" "api_tunnel" {
   secret     = var.tunnel_secret
 }
 
+# Aktualizacja konfiguracji tunelu
 resource "cloudflare_tunnel_config" "api_config" {
   account_id = var.cloudflare_account_id
   tunnel_id  = cloudflare_tunnel.api_tunnel.id
@@ -13,6 +14,12 @@ resource "cloudflare_tunnel_config" "api_config" {
       hostname = "api.260824.xyz"
       service  = "http://backend-api.default.svc.cluster.local:8000"
     }
+
+    ingress_rule {
+      hostname = "auth.260824.xyz"
+      service  = "http://keycloak.infrastructure.svc.cluster.local:80"
+    }
+
     ingress_rule {
       service = "http_status:404"
     }
@@ -22,6 +29,14 @@ resource "cloudflare_tunnel_config" "api_config" {
 resource "cloudflare_record" "api_dns" {
   zone_id = var.cloudflare_zone_id
   name    = "api"
+  value   = "${cloudflare_tunnel.api_tunnel.id}.cfargotunnel.com"
+  type    = "CNAME"
+  proxied = true
+}
+
+resource "cloudflare_record" "auth_dns" {
+  zone_id = var.cloudflare_zone_id
+  name    = "auth"
   value   = "${cloudflare_tunnel.api_tunnel.id}.cfargotunnel.com"
   type    = "CNAME"
   proxied = true
@@ -37,5 +52,3 @@ resource "kubernetes_secret" "cloudflared_token" {
   }
   type = "Opaque"
 }
-
-# test
