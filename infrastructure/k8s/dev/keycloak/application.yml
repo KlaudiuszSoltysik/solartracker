@@ -13,10 +13,11 @@ spec:
       values: |
         global:
           imageRegistry: "public.ecr.aws"
-          # DODAJEMY TO, ŻEBY ZAMKNĄĆ MORDĘ WALIDATOROWI BITNAMI:
           security:
             allowInsecureImages: true
-            
+        extraEnvVars:
+          - name: KC_DB_URL_HOST
+            value: "keycloak-postgresql.infrastructure.svc.cluster.local"
         auth:
           adminUser: admin
           existingSecret: "keycloak-creds"
