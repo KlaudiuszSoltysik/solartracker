@@ -11,6 +11,8 @@ spec:
     targetRevision: "*"
     helm:
       values: |
+        global:
+          imageRegistry: "public.ecr.aws"
         auth:
           adminUser: admin
           existingSecret: "keycloak-creds"
