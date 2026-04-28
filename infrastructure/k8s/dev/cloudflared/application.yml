@@ -16,7 +16,8 @@ spec:
     spec:
       containers:
       - name: cloudflared
-        image: cloudflare/cloudflared:latest
+        image: cloudflare/cloudflared:1826-d2a87e9b9345
+        imagePullPolicy: IfNotPresent
         args:
         - tunnel
         - --no-autoupdate

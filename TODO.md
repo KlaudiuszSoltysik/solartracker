@@ -6,6 +6,7 @@
 - [ ] **Argo Events:** Nasłuchiwanie na webhooki (GitHub, Docker Registry) i eventy systemowe.
 - [ ] **Argo Workflows:** Uruchamianie zautomatyzowanych zadań (np. budowanie nowych obrazów Dockera, backup bazy, testy E2E) po wyzwoleniu przez Argo Events.
 - [ ] **Mobile App:** logowanie, cache, powiadomienia, biometria
+- ollama server
 
 # Usefull commands:
 kubectl create secret generic github-runner-creds \

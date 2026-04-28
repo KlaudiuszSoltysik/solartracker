@@ -18,6 +18,7 @@ spec:
       containers:
       - name: runner
         image: myoung34/github-runner:ubuntu-jammy
+        imagePullPolicy: IfNotPresent
         env:
         - name: REPO_URL
           value: "https://github.com/klaudiuszsoltysik/solartracker"
