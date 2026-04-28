@@ -8,14 +8,15 @@ spec:
   source:
     repoURL: https://charts.bitnami.com/bitnami
     chart: keycloak
-    targetRevision: "21.1.0"
+    targetRevision: "25.2.0"
     helm:
       values: |
-        image:
-          repository: bitnamilegacy/keycloak
-        keycloakConfigCli:
-          image:
-            repository: bitnamilegacy/keycloak-config-cli
+        global:
+          imageRegistry: "public.ecr.aws"
+          # DODAJEMY TO, ŻEBY ZAMKNĄĆ MORDĘ WALIDATOROWI BITNAMI:
+          security:
+            allowInsecureImages: true
+            
         auth:
           adminUser: admin
           existingSecret: "keycloak-creds"
@@ -23,8 +24,6 @@ spec:
         proxy: edge
         postgresql:
           enabled: true
-          image:
-            repository: bitnamilegacy/postgresql
           auth:
             username: "keycloak"
             database: "keycloak_db"
