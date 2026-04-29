@@ -318,62 +318,117 @@ const MetricChart = ({title, realData, forecastData, ySuffix, isToday}: {
 };
 
 const styles = StyleSheet.create({
-    container: {flex: 1, backgroundColor: "#f5f5f5", padding: 16},
+    container: {
+        flex: 1,
+        backgroundColor: "#121212",
+        padding: 16
+    },
 
     metaCard: {
-        backgroundColor: "white",
+        backgroundColor: "#1E1E1E",
         borderRadius: 16,
         padding: 16,
         marginBottom: 16,
         elevation: 3,
         shadowColor: "#000",
-        shadowOpacity: 0.1,
+        shadowOpacity: 0.3,
         shadowRadius: 5,
-        shadowOffset: {width: 0, height: 2}
+        shadowOffset: {width: 0, height: 2},
+        borderWidth: 1,
+        borderColor: "#2C2C2C"
     },
-    metaTitle: {fontSize: 22, fontWeight: "bold", color: "#333", marginBottom: 12},
-    metaBadge: {fontSize: 14, color: "#8641f4", fontWeight: "normal"},
+    metaTitle: {
+        fontSize: 22,
+        fontWeight: "bold",
+        color: "#FFFFFF",
+        marginBottom: 12
+    },
+    metaBadge: {
+        fontSize: 14,
+        color: "#FFB703",
+        fontWeight: "normal"
+    },
     metaRow: {
         flexDirection: "row",
         justifyContent: "space-between",
         paddingVertical: 4,
         borderBottomWidth: 1,
-        borderBottomColor: "#f0f0f0"
+        borderBottomColor: "#2C2C2C"
     },
-    metaLabel: {fontSize: 14, color: "#666"},
-    metaValue: {fontSize: 14, fontWeight: "600", color: "#333"},
+    metaLabel: {
+        fontSize: 14,
+        color: "#A0A0A0"
+    },
+    metaValue: {
+        fontSize: 14,
+        fontWeight: "600",
+        color: "#FFFFFF"
+    },
 
     chartCard: {
-        backgroundColor: "white",
+        backgroundColor: "#1E1E1E",
         borderRadius: 16,
         padding: 8,
         marginBottom: 16,
         elevation: 3,
         shadowColor: "#000",
-        shadowOpacity: 0.1,
+        shadowOpacity: 0.3,
         shadowRadius: 5,
-        shadowOffset: {width: 0, height: 2}
+        shadowOffset: {width: 0, height: 2},
+        borderWidth: 1,
+        borderColor: "#2C2C2C"
     },
-    chartTitle: {fontSize: 16, fontWeight: "bold", color: "#444", textAlign: "center", marginTop: 8, marginBottom: -10},
+    chartTitle: {
+        fontSize: 16,
+        fontWeight: "bold",
+        color: "#FFFFFF",
+        textAlign: "center",
+        marginTop: 8,
+        marginBottom: -10
+    },
 
-    dateControlContainer: {marginBottom: 16, alignItems: "center"},
-    dateButtonsRow: {flexDirection: "row", justifyContent: "space-between", width: "100%", marginBottom: 8},
+    dateControlContainer: {
+        marginBottom: 16,
+        alignItems: "center"
+    },
+    dateButtonsRow: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        width: "100%",
+        marginBottom: 8
+    },
     dateBtn: {
-        backgroundColor: "#e0e0e0",
+        backgroundColor: "#2C2C2C",
         paddingVertical: 8,
         paddingHorizontal: 16,
         borderRadius: 8,
         minWidth: 80,
         alignItems: "center"
     },
-    dateBtnText: {color: "#333", fontWeight: "600"},
+    dateBtnText: {
+        color: "#A0A0A0",
+        fontWeight: "600"
+    },
     dateBtnToday: {
-        backgroundColor: "#8641f4",
+        backgroundColor: "#FFB703",
         paddingVertical: 8,
         paddingHorizontal: 24,
         borderRadius: 8,
-        elevation: 2
+        elevation: 4,
+        shadowColor: "#FFB703",
+        shadowOpacity: 0.4,
+        shadowRadius: 6,
+        shadowOffset: {width: 0, height: 3}
     },
-    dateBtnTextToday: {color: "white", fontWeight: "bold"},
-    currentDateText: {fontSize: 16, fontWeight: "bold", color: "#555"}
+    dateBtnTextToday: {
+        color: "#121212",
+        fontWeight: "bold",
+        textTransform: "uppercase",
+        letterSpacing: 0.5
+    },
+    currentDateText: {
+        fontSize: 16,
+        fontWeight: "bold",
+        color: "#FFFFFF"
+    }
 });

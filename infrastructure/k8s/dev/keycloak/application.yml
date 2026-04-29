@@ -15,14 +15,18 @@ spec:
           imageRegistry: "public.ecr.aws"
           security:
             allowInsecureImages: true
-        extraEnvVars:
-          - name: KC_DB_URL_HOST
-            value: "keycloak-postgresql.infrastructure.svc.cluster.local"
         auth:
           adminUser: admin
           existingSecret: "keycloak-creds"
-        production: false 
+        production: true 
         proxy: edge
+        ingress:
+          enabled: false
+        extraEnvVars:
+          - name: KC_HOSTNAME
+            value: "auth.260824.xyz"
+          - name: KC_PROXY
+            value: "edge"
         postgresql:
           enabled: true
           auth:

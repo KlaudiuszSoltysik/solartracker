@@ -5,13 +5,18 @@
 - [ ] **VPN (OpenVPN):** Postawienie serwera VPN w klastrze. Podłączenie fizycznych układów ESP32 do prywatnej sieci K8s z ominięciem publicznego Wi-Fi, albo wystawienie rabbita na zewnątrz i zabezpieczenie go.
 - [ ] **Argo Events:** Nasłuchiwanie na webhooki (GitHub, Docker Registry) i eventy systemowe.
 - [ ] **Argo Workflows:** Uruchamianie zautomatyzowanych zadań (np. budowanie nowych obrazów Dockera, backup bazy, testy E2E) po wyzwoleniu przez Argo Events.
-- [ ] **Mobile App:** logowanie, cache, powiadomienia, biometria
+- [ ] **Mobile App:**
+
+- powiadomienia
+- manual mode
+- dashboardy
 
 # Usefull commands:
+
 kubectl create secret generic github-runner-creds \
-  --from-literal=github-token= \
-  -n infrastructure \
-  --dry-run=client -o yaml > raw-secret.yml
+ --from-literal=github-token= \
+ -n infrastructure \
+ --dry-run=client -o yaml > raw-secret.yml
 
 kubeseal --cert mycert.pem --format=yaml < raw-secret.yml > infrastructure/k8s/base/github-runner/secret.yml
 
