@@ -1,9 +1,9 @@
-import React, {useEffect, useState} from "react";
-import {ActivityIndicator, View} from "react-native";
-import {NavigationContainer} from "@react-navigation/native";
-import {createStackNavigator} from "@react-navigation/stack";
-import {useAutoDiscovery} from "expo-auth-session";
-import {clearTokens, getValidTokens, performServerLogout, saveTokens} from "./src/utils/AuthService";
+import React, { useEffect, useState } from "react";
+import { ActivityIndicator, View } from "react-native";
+import { NavigationContainer } from "@react-navigation/native";
+import { createStackNavigator } from "@react-navigation/stack";
+import { useAutoDiscovery } from "expo-auth-session";
+import { clearTokens, getValidTokens, performServerLogout, saveTokens } from "./src/utils/AuthService";
 import HomeScreen from "./src/screens/HomeScreen";
 import AssetScreen from "./src/screens/AssetScreen";
 import LoginScreen from "./src/screens/LoginScreen";
@@ -58,7 +58,7 @@ export default function App() {
         checkAuth();
     }, [discovery]);
 
-    const handleLoginSuccess = async (tokenResponse) => {
+    const handleLoginSuccess = async (tokenResponse: any) => {
         await saveTokens(tokenResponse);
         setIsAuthenticated(true);
     };
@@ -70,8 +70,8 @@ export default function App() {
 
     if (!isReady) {
         return (
-            <View style={{flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#1e272e"}}>
-                <ActivityIndicator size="large" color="#f39c12"/>
+            <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#1e272e" }}>
+                <ActivityIndicator size="large" color="#f39c12" />
             </View>
         );
     }
@@ -83,23 +83,23 @@ export default function App() {
                     <>
                         <Stack.Screen
                             name="Home"
-                            options={{title: "Asset List"}}
+                            options={{ title: "Asset List" }}
                         >
-                            {(props) => <HomeScreen {...props} onLogout={handleLogout}/>}
+                            {(props) => <HomeScreen {...props} onLogout={handleLogout} />}
                         </Stack.Screen>
 
                         <Stack.Screen
                             name="Asset"
                             component={AssetScreen}
-                            options={({route}) => ({title: route.params.name || "Asset"})}
+                            options={({ route }) => ({ title: route.params.name || "Asset" })}
                         />
                     </>
                 ) : (
                     <Stack.Screen
                         name="Login"
-                        options={{headerShown: false}}
+                        options={{ headerShown: false }}
                     >
-                        {(props) => <LoginScreen {...props} onLoginSuccess={handleLoginSuccess}/>}
+                        {(props) => <LoginScreen {...props} onLoginSuccess={handleLoginSuccess} />}
                     </Stack.Screen>
                 )}
             </Stack.Navigator>

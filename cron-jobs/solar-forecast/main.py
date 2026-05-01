@@ -1,7 +1,7 @@
 import json
 import logging
 import os
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 
 import pika
 import psycopg2
@@ -33,7 +33,7 @@ RABBITMQ_PASSWORD = os.environ.get("RABBITMQ_PASSWORD", "admin")
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S"
+    datefmt="%Y-%m-%d %H:%M:%S",
 )
 
 logger = logging.getLogger("solar-forecast")
@@ -72,11 +72,7 @@ def calculate_power(irradiance_wm2, temp_c, max_power_w, gamma_pdc, temp_ref):
         return 0.0
 
     forecasted_dc_power = pvlib.pvsystem.pvwatts_dc(
-        irradiance_wm2,
-        temp_c,
-        max_power_w,
-        gamma_pdc,
-        temp_ref
+        irradiance_wm2, temp_c, max_power_w, gamma_pdc, temp_ref
     )
 
     return max(0.0, round(float(forecasted_dc_power), 2))
@@ -127,21 +123,39 @@ def main():
                 if irradiance is None or temp is None:
                     continue
 
-                forecasted_power = calculate_power(irradiance, temp, max_power_w, gamma_pdc, temp_ref)
+                forecasted_power = calculate_power(
+                    irradiance, temp, max_power_w, gamma_pdc, temp_ref
+                )
 
-                forecasts_to_insert.append((dt_time, device_id, forecasted_power, irradiance, temp, current_time))
+                forecasts_to_insert.append(
+                    (
+                        dt_time,
+                        device_id,
+                        forecasted_power,
+                        irradiance,
+                        temp,
+                        current_time,
+                    )
+                )
                 updated_device_ids.add(device_id)
 
-        except Exception as e:
-            logger.error(f"Error during processing farm: {farm['farm_name']}.", exc_info=True)
+        except Exception:
+            logger.error(
+                f"Error during processing farm: {farm['farm_name']}.", exc_info=True
+            )
 
     if not forecasts_to_insert:
         logger.warning("No forecasts generated. Exiting.")
         return
 
     try:
-        conn = psycopg2.connect(host=POSTGRES_HOST, port=POSTGRES_PORT, user=POSTGRES_USERNAME,
-                                password=POSTGRES_PASSWORD, dbname=POSTGRES_NAME)
+        conn = psycopg2.connect(
+            host=POSTGRES_HOST,
+            port=POSTGRES_PORT,
+            user=POSTGRES_USERNAME,
+            password=POSTGRES_PASSWORD,
+            dbname=POSTGRES_NAME,
+        )
         cursor = conn.cursor()
 
         query = """
@@ -157,21 +171,27 @@ def main():
 
         execute_values(cursor, query, forecasts_to_insert)
         conn.commit()
-        logger.info(f"Successfully updated {len(forecasts_to_insert)} forecast intervals in DB.")
+        logger.info(
+            f"Successfully updated {len(forecasts_to_insert)} forecast intervals in DB."
+        )
 
         try:
             credentials = pika.PlainCredentials(RABBITMQ_USERNAME, RABBITMQ_PASSWORD)
-            parameters = pika.ConnectionParameters(RABBITMQ_HOST, RABBITMQ_PORT, "/", credentials)
+            parameters = pika.ConnectionParameters(
+                RABBITMQ_HOST, RABBITMQ_PORT, "/", credentials
+            )
             rabbit_conn = pika.BlockingConnection(parameters)
             channel = rabbit_conn.channel()
 
-            channel.exchange_declare(exchange="processed_telemetry", exchange_type="topic", durable=True)
+            channel.exchange_declare(
+                exchange="processed_telemetry", exchange_type="topic", durable=True
+            )
 
             for dev_id in updated_device_ids:
                 ping_payload = {
                     "type": "forecast_update",
                     "device_id": dev_id,
-                    "timestamp": datetime.now(timezone.utc).isoformat()
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 }
 
                 routing_key = f"processed.forecast.{dev_id}"
@@ -180,7 +200,9 @@ def main():
                     exchange="processed_telemetry",
                     routing_key=routing_key,
                     body=json.dumps(ping_payload),
-                    properties=pika.BasicProperties(delivery_mode=1, expiration="180000")
+                    properties=pika.BasicProperties(
+                        delivery_mode=1, expiration="180000"
+                    ),
                 )
 
             rabbit_conn.close()
@@ -191,8 +213,10 @@ def main():
     except Exception as e:
         logger.error(f"Error during forecasting DB save: {e}.", exc_info=True)
     finally:
-        if "cursor" in locals() and cursor: cursor.close()
-        if "conn" in locals() and conn: conn.close()
+        if "cursor" in locals() and cursor:
+            cursor.close()
+        if "conn" in locals() and conn:
+            conn.close()
         logger.info("Forecasting job finished.")
 
 

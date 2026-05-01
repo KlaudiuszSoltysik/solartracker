@@ -1,14 +1,14 @@
-import React, {useEffect, useState} from "react";
-import {ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import React, { useEffect, useState } from "react";
+import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import * as WebBrowser from "expo-web-browser";
-import {exchangeCodeAsync, makeRedirectUri, useAuthRequest, useAutoDiscovery} from "expo-auth-session";
+import { exchangeCodeAsync, makeRedirectUri, useAuthRequest, useAutoDiscovery } from "expo-auth-session";
 
 WebBrowser.maybeCompleteAuthSession();
 
 const KEYCLOAK_URL = "https://auth.260824.xyz/realms/solartracker";
 const CLIENT_ID = "mobile-app";
 
-const LoginScreen = ({onLoginSuccess}) => {
+const LoginScreen = ({ onLoginSuccess }) => {
     const [isLoading, setIsLoading] = useState(false);
 
     const discovery = useAutoDiscovery(KEYCLOAK_URL);
@@ -36,7 +36,7 @@ const LoginScreen = ({onLoginSuccess}) => {
                         {
                             clientId: CLIENT_ID,
                             code: response.params.code,
-                            extraParams: request.codeVerifier ? {code_verifier: request.codeVerifier} : undefined,
+                            extraParams: request.codeVerifier ? { code_verifier: request.codeVerifier } : undefined,
                             redirectUri: redirectUri,
                         },
                         discovery
@@ -65,7 +65,7 @@ const LoginScreen = ({onLoginSuccess}) => {
 
             <View style={styles.footer}>
                 {isLoading || !discovery ? (
-                    <ActivityIndicator size="large" color="#f39c12"/>
+                    <ActivityIndicator size="large" color="#f39c12" />
                 ) : (
                     <TouchableOpacity
                         style={styles.button}
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
 
         shadowColor: "#FFB703",
-        shadowOffset: {width: 0, height: 4},
+        shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.4,
         shadowRadius: 12,
         elevation: 8,

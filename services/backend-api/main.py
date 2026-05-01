@@ -4,10 +4,11 @@ import logging
 import os
 from contextlib import asynccontextmanager
 from datetime import datetime
-from typing import Dict, List
+from typing import Any, Dict, List, cast
 
 import aio_pika
 import psycopg2
+import uvicorn
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
@@ -36,7 +37,7 @@ RABBITMQ_PASSWORD = os.environ.get("RABBITMQ_PASSWORD", "admin")
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S"
+    datefmt="%Y-%m-%d %H:%M:%S",
 )
 
 logger = logging.getLogger("backend-api")
@@ -56,7 +57,7 @@ def get_postgres_connection():
             user=POSTGRES_USERNAME,
             password=POSTGRES_PASSWORD,
             dbname=POSTGRES_NAME,
-            cursor_factory=RealDictCursor
+            cursor_factory=RealDictCursor,
         )
         return conn
     except Exception as e:
@@ -79,7 +80,8 @@ class ConnectionManager:
             self.active_connections[device_id] = []
         self.active_connections[device_id].append(websocket)
         logger.info(
-            f"WebSocket connected | Device: {device_id} | Total clients for device: {len(self.active_connections[device_id])}")
+            f"WebSocket connected | Device: {device_id} | Total clients for device: {len(self.active_connections[device_id])}"
+        )
 
     def disconnect(self, websocket: WebSocket, device_id: str):
         if device_id in self.active_connections:
@@ -107,7 +109,7 @@ async def consume_rabbitmq():
                 host=RABBITMQ_HOST,
                 port=RABBITMQ_PORT,
                 login=RABBITMQ_USERNAME,
-                password=RABBITMQ_PASSWORD
+                password=RABBITMQ_PASSWORD,
             )
 
             async with connection:
@@ -116,7 +118,7 @@ async def consume_rabbitmq():
                 exchange = await channel.declare_exchange(
                     name="processed_telemetry",
                     type=aio_pika.ExchangeType.TOPIC,
-                    durable=True
+                    durable=True,
                 )
 
                 queue = await channel.declare_queue(exclusive=True, auto_delete=True)
@@ -127,7 +129,7 @@ async def consume_rabbitmq():
                         async with message.process():
                             payload = json.loads(message.body.decode())
 
-                            routing_key = message.routing_key
+                            routing_key = str(message.routing_key)
                             device_id = routing_key.split(".")[-1]
 
                             if routing_key.startswith("processed.telemetry."):
@@ -141,21 +143,17 @@ async def consume_rabbitmq():
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app):
     logger.info("Starting API...")
 
-    rabbitmq_task = asyncio.create_task(consume_rabbitmq())
+    asyncio.create_task(consume_rabbitmq())
 
     yield
 
     logger.info("Shutting down API...")
 
 
-app = FastAPI(
-    title="Solar Tracker API",
-    version="1.0.0",
-    lifespan=lifespan
-)
+app = FastAPI(title="Solar Tracker API", version="1.0.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -168,11 +166,13 @@ app.add_middleware(
 
 @app.get("/api/v1/telemetry/{device_id}")
 def get_telemetry_history(
-        device_id: str,
-        start_date: datetime = Query(..., description="Start timestamp (ISO 8601)"),
-        end_date: datetime = Query(..., description="End timestamp (ISO 8601)")
+    device_id: str,
+    start_date: datetime = Query(..., description="Start timestamp (ISO 8601)"),
+    end_date: datetime = Query(..., description="End timestamp (ISO 8601)"),
 ):
-    logger.info(f"Fetching telemetry for {device_id} | Range: {start_date} to {end_date}.")
+    logger.info(
+        f"Fetching telemetry for {device_id} | Range: {start_date} to {end_date}."
+    )
 
     conn = get_postgres_connection()
     try:
@@ -196,11 +196,13 @@ def get_telemetry_history(
 
 @app.get("/api/v1/energy-forecast/{device_id}")
 def get_energy_forecast(
-        device_id: str,
-        start_date: datetime = Query(..., description="Start timestamp (ISO 8601)"),
-        end_date: datetime = Query(..., description="End timestamp (ISO 8601)")
+    device_id: str,
+    start_date: datetime = Query(..., description="Start timestamp (ISO 8601)"),
+    end_date: datetime = Query(..., description="End timestamp (ISO 8601)"),
 ):
-    logger.info(f"Fetching forecast for {device_id} | Range: {start_date} to {end_date}.")
+    logger.info(
+        f"Fetching forecast for {device_id} | Range: {start_date} to {end_date}."
+    )
 
     conn = get_postgres_connection()
     try:
@@ -214,11 +216,12 @@ def get_energy_forecast(
                     ORDER BY time ASC; \
                     """
             cursor.execute(query, (device_id, start_date, end_date))
-            results = cursor.fetchall()
+            results = cast(List[Dict[str, Any]], cursor.fetchall())
 
             if results:
                 keys_to_remove = [
-                    key for key in results[0].keys()
+                    key
+                    for key in results[0].keys()
                     if all(row[key] is None for row in results)
                 ]
 
@@ -260,7 +263,9 @@ def get_all_assets():
         combined_assets = pv_assets + wind_assets
         combined_assets.sort(key=lambda asset: asset.get("farm_name", "").lower())
 
-        logger.info(f"Query successful. Found {len(pv_assets)} PV and {len(wind_assets)} Wind assets.")
+        logger.info(
+            f"Query successful. Found {len(pv_assets)} PV and {len(wind_assets)} Wind assets."
+        )
         return combined_assets
 
     except Exception as e:
@@ -276,12 +281,10 @@ async def websocket_live_stream(websocket: WebSocket, device_id: str):
     await manager.connect(websocket, device_id)
     try:
         while True:
-            data = await websocket.receive_text()
+            await websocket.receive_text()
     except WebSocketDisconnect:
         manager.disconnect(websocket, device_id)
 
 
 if __name__ == "__main__":
-    import uvicorn
-
     uvicorn.run(app, host="0.0.0.0", port=8001, log_level="error")

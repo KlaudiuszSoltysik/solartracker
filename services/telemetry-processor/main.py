@@ -26,7 +26,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] [%(name)s] %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
-    handlers=[logging.StreamHandler(sys.stdout)]
+    handlers=[logging.StreamHandler(sys.stdout)],
 )
 
 logger = logging.getLogger("telemetry_processor")
@@ -40,7 +40,7 @@ def get_db_connection():
         port=POSTGRES_PORT,
         user=POSTGRES_USERNAME,
         password=POSTGRES_PASSWORD,
-        dbname=POSTGRES_DB
+        dbname=POSTGRES_DB,
     )
 
 
@@ -64,16 +64,19 @@ def process_message(ch, method, properties, body):
                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s) \
                        """
 
-        cursor.execute(insert_query, (
-            dt_time,
-            device_id,
-            payload.get("voltage_v"),
-            payload.get("current_a"),
-            payload.get("irradiance_wm2"),
-            payload.get("temp_c"),
-            payload.get("yaw_angle_deg"),
-            payload.get("status")
-        ))
+        cursor.execute(
+            insert_query,
+            (
+                dt_time,
+                device_id,
+                payload.get("voltage_v"),
+                payload.get("current_a"),
+                payload.get("irradiance_wm2"),
+                payload.get("temp_c"),
+                payload.get("yaw_angle_deg"),
+                payload.get("status"),
+            ),
+        )
 
         conn.commit()
         cursor.close()
@@ -96,12 +99,11 @@ def process_message(ch, method, properties, body):
             exchange="processed_telemetry",
             routing_key=processed_routing_key,
             body=json.dumps(payload),
-            properties=pika.BasicProperties(
-                delivery_mode=1,
-                expiration="180000"
-            )
+            properties=pika.BasicProperties(delivery_mode=1, expiration="180000"),
         )
-        logger.info(f"Forwarded processed data to exchange | Routing Key: {processed_routing_key}.")
+        logger.info(
+            f"Forwarded processed data to exchange | Routing Key: {processed_routing_key}."
+        )
 
         ch.basic_ack(delivery_tag=method.delivery_tag)
 
@@ -117,7 +119,9 @@ def process_message(ch, method, properties, body):
 
 def main():
     credentials = pika.PlainCredentials(RABBITMQ_USERNAME, RABBITMQ_PASSWORD)
-    parameters = pika.ConnectionParameters(RABBITMQ_HOST, RABBITMQ_PORT, "/", credentials)
+    parameters = pika.ConnectionParameters(
+        RABBITMQ_HOST, RABBITMQ_PORT, "/", credentials
+    )
 
     while True:
         try:
@@ -127,8 +131,12 @@ def main():
 
             queue_name = "q_telemetry_processor"
             channel.queue_declare(queue=queue_name, durable=True)
-            channel.queue_bind(exchange="amq.topic", queue=queue_name, routing_key="telemetry.device.#")
-            channel.exchange_declare(exchange="processed_telemetry", exchange_type="topic", durable=True)
+            channel.queue_bind(
+                exchange="amq.topic", queue=queue_name, routing_key="telemetry.device.#"
+            )
+            channel.exchange_declare(
+                exchange="processed_telemetry", exchange_type="topic", durable=True
+            )
             channel.basic_consume(queue=queue_name, on_message_callback=process_message)
 
             logger.info(f"Connected to '{queue_name}'. Waiting for messages...")

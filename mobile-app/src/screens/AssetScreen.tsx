@@ -1,6 +1,6 @@
-import React, {useCallback, useEffect, useState} from "react";
-import {useFocusEffect} from '@react-navigation/native';
-import {ActivityIndicator, Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import React, { useCallback, useEffect, useState } from "react";
+import { useFocusEffect } from '@react-navigation/native';
+import { ActivityIndicator, Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import {
     VictoryAxis,
     VictoryChart,
@@ -9,20 +9,36 @@ import {
     VictoryTheme,
     VictoryZoomContainer
 } from "victory-native";
-import {API_BASE_URL} from "../../App";
+import { API_BASE_URL } from "../../App";
 
-export default function AssetScreen({route}: any) {
-    const {deviceId, assetType, name, maxPowerW, lat, lon} = route.params;
+export default function AssetScreen({ route }: any) {
+    const { deviceId, assetType, name, maxPowerW, lat, lon } = route.params;
 
     const [currentDate, setCurrentDate] = useState(new Date());
     const [loading, setLoading] = useState(false);
 
-    const [data, setData] = useState({
-        power: {real: [], forecast: []},
-        irradiance: {real: [], forecast: []},
-        temp: {real: [], forecast: []},
-        wind: {real: [], forecast: []}
-    });
+    type TimeSeriesPoint = { x: Date; y: number };
+
+    type MetricSeries = {
+        real: TimeSeriesPoint[];
+        forecast: TimeSeriesPoint[];
+    };
+
+    type AssetData = {
+        power: MetricSeries;
+        irradiance: MetricSeries;
+        temp: MetricSeries;
+        wind: MetricSeries;
+    };
+
+    const initialData: AssetData = {
+        power: { real: [], forecast: [] },
+        irradiance: { real: [], forecast: [] },
+        temp: { real: [], forecast: [] },
+        wind: { real: [], forecast: [] },
+    };
+
+    const [data, setData] = useState<AssetData>(initialData);
 
     const handlePreviousDay = () => {
         const prev = new Date(currentDate);
@@ -70,10 +86,10 @@ export default function AssetScreen({route}: any) {
 
             setData(prev => ({
                 ...prev,
-                power: {...prev.power, real: extractData(json, "power_w")},
-                irradiance: {...prev.irradiance, real: extractData(json, "irradiance_wm2")},
-                temp: {...prev.temp, real: extractData(json, "temp_c")},
-                wind: {...prev.wind, real: extractData(json, "wind_mps")}
+                power: { ...prev.power, real: extractData(json, "power_w") },
+                irradiance: { ...prev.irradiance, real: extractData(json, "irradiance_wm2") },
+                temp: { ...prev.temp, real: extractData(json, "temp_c") },
+                wind: { ...prev.wind, real: extractData(json, "wind_mps") }
             }));
         } catch (err) {
             console.error("Failed to fetch telemetry:", err);
@@ -87,10 +103,10 @@ export default function AssetScreen({route}: any) {
 
             setData(prev => ({
                 ...prev,
-                power: {...prev.power, forecast: extractData(json, "power_w")},
-                irradiance: {...prev.irradiance, forecast: extractData(json, "irradiance_wm2")},
-                temp: {...prev.temp, forecast: extractData(json, "temp_c")},
-                wind: {...prev.wind, forecast: extractData(json, "wind_speed_mps")}
+                power: { ...prev.power, forecast: extractData(json, "power_w") },
+                irradiance: { ...prev.irradiance, forecast: extractData(json, "irradiance_wm2") },
+                temp: { ...prev.temp, forecast: extractData(json, "temp_c") },
+                wind: { ...prev.wind, forecast: extractData(json, "wind_speed_mps") }
             }));
         } catch (err) {
             console.error("Failed to fetch forecast:", err);
@@ -134,13 +150,13 @@ export default function AssetScreen({route}: any) {
                             const newTime = new Date(msg.time);
                             return {
                                 ...prev,
-                                power: {...prev.power, real: [...prev.power.real, {x: newTime, y: msg.power_w ?? 0}]},
+                                power: { ...prev.power, real: [...prev.power.real, { x: newTime, y: msg.power_w ?? 0 }] },
                                 irradiance: {
                                     ...prev.irradiance,
-                                    real: [...prev.irradiance.real, {x: newTime, y: msg.irradiance_wm2 ?? 0}]
+                                    real: [...prev.irradiance.real, { x: newTime, y: msg.irradiance_wm2 ?? 0 }]
                                 },
-                                temp: {...prev.temp, real: [...prev.temp.real, {x: newTime, y: msg.temp_c ?? 0}]},
-                                wind: {...prev.wind, real: [...prev.wind.real, {x: newTime, y: msg.wind_mps ?? 0}]},
+                                temp: { ...prev.temp, real: [...prev.temp.real, { x: newTime, y: msg.temp_c ?? 0 }] },
+                                wind: { ...prev.wind, real: [...prev.wind.real, { x: newTime, y: msg.wind_mps ?? 0 }] },
                             };
                         });
                     } else if (msg.type === "forecast_update") {
@@ -174,7 +190,7 @@ export default function AssetScreen({route}: any) {
     );
 
     return (
-        <ScrollView style={styles.container} contentContainerStyle={{paddingBottom: 40}}>
+        <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
             <View style={styles.metaCard}>
                 <Text style={styles.metaTitle}>{name} <Text style={styles.metaBadge}>({assetType.toUpperCase()})</Text></Text>
                 <View style={styles.metaRow}>
@@ -209,7 +225,7 @@ export default function AssetScreen({route}: any) {
             </View>
 
             {loading ? (
-                <ActivityIndicator size="large" color="#8641f4" style={{marginTop: 50}}/>
+                <ActivityIndicator size="large" color="#8641f4" style={{ marginTop: 50 }} />
             ) : (
                 data && (
                     <>
@@ -256,7 +272,7 @@ export default function AssetScreen({route}: any) {
     );
 }
 
-const MetricChart = ({title, realData, forecastData, ySuffix, isToday}: {
+const MetricChart = ({ title, realData, forecastData, ySuffix, isToday }: {
     title: string,
     realData: any[],
     forecastData: any[],
@@ -272,10 +288,10 @@ const MetricChart = ({title, realData, forecastData, ySuffix, isToday}: {
                 theme={VictoryTheme.material}
                 width={Dimensions.get("window").width - 32}
                 height={250}
-                scale={{x: "time"}}
-                domainPadding={{y: 20}}
-                padding={{top: 20, bottom: 40, left: 75, right: 20}}
-                containerComponent={<VictoryZoomContainer zoomDimension="x" allowZoom={true} allowPan={true}/>}
+                scale={{ x: "time" }}
+                domainPadding={{ y: 20 }}
+                padding={{ top: 20, bottom: 40, left: 75, right: 20 }}
+                containerComponent={<VictoryZoomContainer zoomDimension="x" allowZoom={true} allowPan={true} />}
             >
                 <VictoryAxis
                     tickFormat={(x) => {
@@ -283,34 +299,34 @@ const MetricChart = ({title, realData, forecastData, ySuffix, isToday}: {
                         return `${d.getHours()}:${d.getMinutes().toString().padStart(2, "0")}`;
                     }}
                     fixLabelOverlap
-                    style={{tickLabels: {fontSize: 10, padding: 5}}}
+                    style={{ tickLabels: { fontSize: 10, padding: 5 } }}
                 />
 
-                <VictoryAxis dependentAxis tickFormat={(x) => `${Math.round(x)}${ySuffix}`}/>
+                <VictoryAxis dependentAxis tickFormat={(x) => `${Math.round(x)}${ySuffix}`} />
 
                 {isToday && (
                     <VictoryAxis
                         dependentAxis
                         axisValue={now}
                         style={{
-                            axis: {stroke: "#ff4757", strokeWidth: 1.5, strokeDasharray: "5,5"},
-                            tickLabels: {fill: "transparent"},
-                            ticks: {stroke: "transparent"},
-                            grid: {stroke: "transparent"}
+                            axis: { stroke: "#FF4757", strokeWidth: 1.5, strokeDasharray: "5,5" },
+                            tickLabels: { fill: "transparent" },
+                            ticks: { stroke: "transparent" },
+                            grid: { stroke: "transparent" }
                         }}
                     />
                 )}
 
                 {forecastData && forecastData.length > 0 && (
-                    <VictoryLine data={forecastData} style={{data: {stroke: "#8641f4", strokeWidth: 2}}}/>
+                    <VictoryLine data={forecastData} style={{ data: { stroke: "#8641f4", strokeWidth: 2 } }} />
                 )}
 
                 {realData && realData.length > 0 && (
-                    <VictoryLine data={realData} style={{data: {stroke: "#22c1c3", strokeWidth: 2}}}/>
+                    <VictoryLine data={realData} style={{ data: { stroke: "#FFB703", strokeWidth: 2 } }} />
                 )}
 
                 {realData && realData.length > 0 && (
-                    <VictoryScatter data={realData} size={2} style={{data: {fill: "#22c1c3"}}}/>
+                    <VictoryScatter data={realData} size={2} style={{ data: { fill: "#FFB703" } }} />
                 )}
             </VictoryChart>
         </View>
@@ -333,7 +349,7 @@ const styles = StyleSheet.create({
         shadowColor: "#000",
         shadowOpacity: 0.3,
         shadowRadius: 5,
-        shadowOffset: {width: 0, height: 2},
+        shadowOffset: { width: 0, height: 2 },
         borderWidth: 1,
         borderColor: "#2C2C2C"
     },
@@ -374,7 +390,7 @@ const styles = StyleSheet.create({
         shadowColor: "#000",
         shadowOpacity: 0.3,
         shadowRadius: 5,
-        shadowOffset: {width: 0, height: 2},
+        shadowOffset: { width: 0, height: 2 },
         borderWidth: 1,
         borderColor: "#2C2C2C"
     },
@@ -418,7 +434,7 @@ const styles = StyleSheet.create({
         shadowColor: "#FFB703",
         shadowOpacity: 0.4,
         shadowRadius: 6,
-        shadowOffset: {width: 0, height: 3}
+        shadowOffset: { width: 0, height: 3 }
     },
     dateBtnTextToday: {
         color: "#121212",

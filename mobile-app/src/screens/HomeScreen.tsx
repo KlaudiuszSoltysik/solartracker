@@ -1,16 +1,16 @@
-import React, {useEffect, useState} from "react";
-import {ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View} from "react-native";
-import {NativeStackNavigationProp} from "@react-navigation/native-stack";
-import {RootStackParamList} from "../utils/types";
-import {API_BASE_URL} from "../../App";
-import MapView, {Marker} from "react-native-maps";
+import React, { useEffect, useState } from "react";
+import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../utils/types";
+import { API_BASE_URL } from "../../App";
+import MapView, { Marker } from "react-native-maps";
 
 type Props = {
     navigation: NativeStackNavigationProp<RootStackParamList, "Home">;
     onLogout: () => void;
 };
 
-export default function HomeScreen({navigation, onLogout}: Props) {
+export default function HomeScreen({ navigation, onLogout }: Props) {
     const [assets, setAssets] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [viewMode, setViewMode] = useState<"list" | "map">("list");
@@ -30,7 +30,7 @@ export default function HomeScreen({navigation, onLogout}: Props) {
     }, []);
 
     if (loading) {
-        return <ActivityIndicator size="large" style={styles.center}/>;
+        return <ActivityIndicator size="large" style={styles.center} />;
     }
 
     const initialRegion = assets.length > 0 ? {
@@ -61,9 +61,9 @@ export default function HomeScreen({navigation, onLogout}: Props) {
             {viewMode === "list" && (
                 <FlatList
                     data={assets}
-                    contentContainerStyle={{paddingBottom: 20}}
+                    contentContainerStyle={{ paddingBottom: 20 }}
                     keyExtractor={(item, index) => item.device_id || index.toString()}
-                    renderItem={({item}) => (
+                    renderItem={({ item }) => (
                         <TouchableOpacity
                             style={styles.listCard}
                             activeOpacity={0.9}
@@ -100,14 +100,14 @@ export default function HomeScreen({navigation, onLogout}: Props) {
                         {assets.map((item) => (
                             <Marker
                                 key={item.device_id}
-                                coordinate={{latitude: item.lat, longitude: item.lon}}
-                                anchor={{x: 0.25, y: 0.25}}
+                                coordinate={{ latitude: item.lat, longitude: item.lon }}
+                                anchor={{ x: 0.25, y: 0.25 }}
                                 onPress={(e) => {
                                     e.stopPropagation();
                                     setSelectedAsset(item);
                                 }}
                             >
-                                <View style={{width: 40, height: 40, justifyContent: "center", alignItems: "center"}}>
+                                <View style={{ width: 40, height: 40, justifyContent: "center", alignItems: "center" }}>
                                     <View style={styles.customMarker}>
                                         <Text style={styles.markerEmoji}>
                                             {item.asset_type === "pv" ? "☀️" : "🌬️"}
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
         shadowColor: "#FFB703",
         shadowOpacity: 0.3,
         shadowRadius: 4,
-        shadowOffset: {width: 0, height: 2},
+        shadowOffset: { width: 0, height: 2 },
         borderWidth: 1.5,
         borderColor: "#FFB703"
     },
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
         shadowColor: "#000",
         shadowOpacity: 0.5,
         shadowRadius: 6,
-        shadowOffset: {width: 0, height: 2},
+        shadowOffset: { width: 0, height: 2 },
         marginBottom: 10,
         borderWidth: 1,
         borderColor: "#2C2C2C"
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
         shadowColor: "#000",
         shadowOpacity: 0.3,
         shadowRadius: 5,
-        shadowOffset: {width: 0, height: 2},
+        shadowOffset: { width: 0, height: 2 },
         borderWidth: 1,
         borderColor: "#2C2C2C",
     },
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
         shadowColor: "#000",
         shadowOpacity: 0.5,
         shadowRadius: 10,
-        shadowOffset: {width: 0, height: 5},
+        shadowOffset: { width: 0, height: 5 },
         borderWidth: 1,
         borderColor: "#2C2C2C"
     },

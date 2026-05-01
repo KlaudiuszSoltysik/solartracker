@@ -22,7 +22,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] [%(name)s] %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
-    handlers=[logging.StreamHandler(sys.stdout)]
+    handlers=[logging.StreamHandler(sys.stdout)],
 )
 
 logger = logging.getLogger(f"{DEVICE_ID}")
@@ -67,7 +67,7 @@ def generate_mock_telemetry():
         "irradiance_wm2": random.randint(200, 950),
         "temp_c": round(random.uniform(15.0, 45.0), 1),
         "yaw_angle_deg": current_yaw_angle,
-        "status": "OK"
+        "status": "OK",
     }
 
 
@@ -80,7 +80,9 @@ def main():
 
     while True:
         try:
-            logger.info(f"Connecting device: {DEVICE_ID} to MQTT broker at {BROKER}:{PORT}...")
+            logger.info(
+                f"Connecting device: {DEVICE_ID} to MQTT broker at {BROKER}:{PORT}..."
+            )
             client.connect(BROKER, PORT, keepalive=60)
             break
         except Exception as e:
