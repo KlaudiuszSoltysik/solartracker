@@ -23,10 +23,10 @@ spec:
         ingress:
           enabled: false
         extraEnvVars:
-          - name: KC_HOSTNAME
-            value: "auth.260824.xyz"
-          - name: KC_PROXY
-            value: "edge"
+          - name: KC_HOSTNAME_URL
+            value: "https://auth.260824.xyz"
+          - name: KC_HOSTNAME_ADMIN_URL
+            value: "https://auth.260824.xyz"
           - name: KC_PROXY_HEADERS
             value: "xforwarded"
           - name: KC_HTTP_ENABLED
