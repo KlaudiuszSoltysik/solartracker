@@ -2,8 +2,7 @@ import React, { useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
-import { useAutoDiscovery } from "expo-auth-session";
-import { getValidTokens, performServerLogout, saveTokens } from "./src/utils/AuthService";
+import { getValidTokens, saveTokens } from "./src/utils/AuthService";
 import HomeScreen from "./src/screens/HomeScreen";
 import AssetScreen from "./src/screens/AssetScreen";
 import LoginScreen from "./src/screens/LoginScreen";
@@ -17,7 +16,12 @@ import * as LocalAuthentication from 'expo-local-authentication';
 // export const API_BASE_URL = "http://localhost:8001/api/v1";
 export const API_BASE_URL = "http://api.260824.xyz/api/v1";
 
-const KEYCLOAK_URL = "https://auth.260824.xyz/realms/solartracker";
+export const DISCOVERY = {
+        authorizationEndpoint: "https://auth.260824.xyz/realms/solartracker/protocol/openid-connect/auth",
+        tokenEndpoint: "https://auth.260824.xyz/realms/solartracker/protocol/openid-connect/token",
+        revocationEndpoint: "https://auth.260824.xyz/realms/solartracker/protocol/openid-connect/revoke"
+    };
+
 const CLIENT_ID = "mobile-app";
 
 const Stack = createStackNavigator();
@@ -35,8 +39,6 @@ Notifications.setNotificationHandler({
 export default function App() {
     const [isReady, setIsReady] = useState(false);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-    const discovery = useAutoDiscovery(KEYCLOAK_URL);
 
     useEffect(() => {
         async function registerForPushNotificationsAsync() {
@@ -79,9 +81,7 @@ export default function App() {
         }
 
         const checkAuth = async () => {
-            if (!discovery) return;
-
-            const validTokens = await getValidTokens(discovery, CLIENT_ID);
+            const validTokens = await getValidTokens(DISCOVERY, CLIENT_ID);
 
             if (validTokens) {
                 const hasHardware = await LocalAuthentication.hasHardwareAsync();
@@ -110,7 +110,7 @@ export default function App() {
 
         registerForPushNotificationsAsync();
         checkAuth();
-    }, [discovery]);
+    }, []);
 
     const handleLoginSuccess = async (tokenResponse: any) => {
         await saveTokens(tokenResponse);
@@ -118,13 +118,8 @@ export default function App() {
     };
 
     const handleLogout = async () => {
-        if (!discovery) {
             setIsAuthenticated(false);
             return;
-        }
-
-        await performServerLogout(discovery, CLIENT_ID);
-        setIsAuthenticated(false);
     };
 
     if (!isReady) {

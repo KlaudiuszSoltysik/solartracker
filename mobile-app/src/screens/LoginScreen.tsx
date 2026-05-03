@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import * as WebBrowser from "expo-web-browser";
-import { exchangeCodeAsync, makeRedirectUri, useAuthRequest, useAutoDiscovery } from "expo-auth-session";
+import { exchangeCodeAsync, makeRedirectUri, useAuthRequest } from "expo-auth-session";
+import { DISCOVERY } from "../../App";
 
 WebBrowser.maybeCompleteAuthSession();
 
-const KEYCLOAK_URL = "https://auth.260824.xyz/realms/solartracker";
 const CLIENT_ID = "mobile-app";
 
 type LoginScreenProps = {
@@ -14,8 +14,7 @@ type LoginScreenProps = {
 
 const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
     const [isLoading, setIsLoading] = useState(false);
-
-    const discovery = useAutoDiscovery(KEYCLOAK_URL);
+    const isFetching = useRef(false);
 
     const redirectUri = makeRedirectUri({
         scheme: "solartracker",
@@ -28,13 +27,15 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
             scopes: ["openid", "profile", "offline_access"],
             redirectUri: redirectUri,
         },
-        discovery
+        DISCOVERY
     );
 
     useEffect(() => {
         const fetchTokens = async () => {
-            if (response?.type === "success" && discovery) {
+            if (response?.type === "success" && !isFetching.current) {
+                isFetching.current = true;
                 setIsLoading(true);
+
                 try {
                     const tokenResponse = await exchangeCodeAsync(
                         {
@@ -43,15 +44,16 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                             extraParams: request?.codeVerifier ? { code_verifier: request.codeVerifier } : undefined,
                             redirectUri: redirectUri,
                         },
-                        discovery
+                        DISCOVERY
                     );
 
                     onLoginSuccess(tokenResponse);
 
                 } catch (error) {
-                    console.error("TOKEN EXCHANGE ERROR:", error);
                     const message = error instanceof Error ? error.message : "Something went wrong";
                     Alert.alert("Error", message);
+
+                    isFetching.current = false;
                 } finally {
                     setIsLoading(false);
                 }
@@ -61,7 +63,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
         };
 
         fetchTokens();
-    }, [response, discovery, request]);
+    }, [response, request]);
 
     return (
         <View style={styles.container}>
@@ -70,7 +72,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
             </View>
 
             <View style={styles.footer}>
-                {isLoading || !discovery ? (
+                {isLoading ? (
                     <ActivityIndicator size="large" color="#f39c12" />
                 ) : (
                     <TouchableOpacity
