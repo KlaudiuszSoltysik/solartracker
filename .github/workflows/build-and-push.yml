@@ -27,6 +27,8 @@ jobs:
             path: services/esp32-simulator
           - name: solar-forecast
             path: cron-jobs/solar-forecast
+          - name: downtime-checking
+            path: cron-jobs/downtime-checking
 
     steps:
       - name: Check out the repo
