@@ -3,11 +3,15 @@ import { ActivityIndicator, View } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { useAutoDiscovery } from "expo-auth-session";
-import { clearTokens, getValidTokens, performServerLogout, saveTokens } from "./src/utils/AuthService";
+import { getValidTokens, performServerLogout, saveTokens } from "./src/utils/AuthService";
 import HomeScreen from "./src/screens/HomeScreen";
 import AssetScreen from "./src/screens/AssetScreen";
 import LoginScreen from "./src/screens/LoginScreen";
-import * as LocalAuthentication from "expo-local-authentication";
+import { Platform, Alert } from 'react-native';
+import * as Device from 'expo-device';
+import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants';
+import * as LocalAuthentication from 'expo-local-authentication';
 
 // export const API_BASE_URL = "https://6c3b-188-33-128-213.ngrok-free.app/api/v1";
 // export const API_BASE_URL = "http://localhost:8001/api/v1";
@@ -18,6 +22,16 @@ const CLIENT_ID = "mobile-app";
 
 const Stack = createStackNavigator();
 
+Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+        shouldShowBanner: true,
+        shouldShowList: true,
+    }),
+});
+
 export default function App() {
     const [isReady, setIsReady] = useState(false);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -25,6 +39,45 @@ export default function App() {
     const discovery = useAutoDiscovery(KEYCLOAK_URL);
 
     useEffect(() => {
+        async function registerForPushNotificationsAsync() {
+            let token: string | undefined;
+
+            if (Device.isDevice) {
+                const { status: existingStatus } = await Notifications.getPermissionsAsync();
+                let finalStatus = existingStatus;
+
+                if (existingStatus !== 'granted') {
+                    const { status } = await Notifications.requestPermissionsAsync();
+                    finalStatus = status;
+                }
+
+                if (finalStatus !== 'granted') {
+                    Alert.alert('Error', 'No permission for notifications!');
+                    return;
+                }
+
+                try {
+                    const projectId = Constants.expoConfig?.extra?.eas?.projectId;
+
+                    token = (await Notifications.getExpoPushTokenAsync({
+                        projectId: projectId,
+                    })).data;
+                } catch (e) {
+                }
+            }
+
+            if (Platform.OS === 'android') {
+                await Notifications.setNotificationChannelAsync('default', {
+                    name: 'default',
+                    importance: Notifications.AndroidImportance.MAX,
+                    vibrationPattern: [0, 250, 250, 250],
+                    lightColor: '#FF4757',
+                });
+            }
+
+            return token;
+        }
+
         const checkAuth = async () => {
             if (!discovery) return;
 
@@ -55,6 +108,7 @@ export default function App() {
             setIsReady(true);
         };
 
+        registerForPushNotificationsAsync();
         checkAuth();
     }, [discovery]);
 

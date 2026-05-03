@@ -1,0 +1,59 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: downtime-checking
+  namespace: default
+spec:
+  schedule: "*/5 * * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          enableServiceLinks: false
+          imagePullSecrets:
+          - name: ghcr-secret
+          containers:
+          - name: downtime-checking
+            image: downtime-checking
+            imagePullPolicy: Always
+            env:
+            - name: POSTGRES_HOST
+              value: "timescaledb"
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: timescaledb-creds
+                  key: username
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: timescaledb-creds
+                  key: password
+            - name: POSTGRES_DB
+              value: "default_db"
+            - name: MONGODB_HOST
+              value: "mongodb"
+            - name: MONGODB_PORT
+              value: "27017"
+            - name: MONGODB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb-creds
+                  key: username
+            - name: MONGODB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb-creds
+                  key: password
+            - name: MONGODB_DB
+              value: "default_db"
+            - name: EXPO_PUSH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: expo-app-creds
+                  key: expo-push-token
+          restartPolicy: OnFailure
