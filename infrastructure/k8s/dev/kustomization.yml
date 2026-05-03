@@ -11,6 +11,9 @@ resources:
 
   - cloudflared/application.yml
 
+  - downtime-checking/cronjob.yml
+  - downtime-checking/secret.yml
+
   - esp32-simulator/deployment.yml
 
   - infrastructure-runner/application.yml
@@ -52,5 +55,8 @@ images:
     newTag: master
   - name: solar-forecast
     newName: ghcr.io/klaudiuszsoltysik/solartracker/solar-forecast
+    newTag: master
+  - name: downtime-checking
+    newName: ghcr.io/klaudiuszsoltysik/solartracker/downtime-checking
     newTag: master
   
