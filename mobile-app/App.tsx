@@ -64,6 +64,11 @@ export default function App() {
     };
 
     const handleLogout = async () => {
+        if (!discovery) {
+            setIsAuthenticated(false);
+            return;
+        }
+
         await performServerLogout(discovery, CLIENT_ID);
         setIsAuthenticated(false);
     };
@@ -91,7 +96,7 @@ export default function App() {
                         <Stack.Screen
                             name="Asset"
                             component={AssetScreen}
-                            options={({ route }) => ({ title: route.params.name || "Asset" })}
+                            options={({ route }: any) => ({ title: route.params?.name || "Asset" })}
                         />
                     </>
                 ) : (

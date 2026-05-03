@@ -8,7 +8,11 @@ WebBrowser.maybeCompleteAuthSession();
 const KEYCLOAK_URL = "https://auth.260824.xyz/realms/solartracker";
 const CLIENT_ID = "mobile-app";
 
-const LoginScreen = ({ onLoginSuccess }) => {
+type LoginScreenProps = {
+    onLoginSuccess: (tokenResponse: any) => void;
+};
+
+const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
     const [isLoading, setIsLoading] = useState(false);
 
     const discovery = useAutoDiscovery(KEYCLOAK_URL);
@@ -29,14 +33,14 @@ const LoginScreen = ({ onLoginSuccess }) => {
 
     useEffect(() => {
         const fetchTokens = async () => {
-            if (response?.type === "success") {
+            if (response?.type === "success" && discovery) {
                 setIsLoading(true);
                 try {
                     const tokenResponse = await exchangeCodeAsync(
                         {
                             clientId: CLIENT_ID,
                             code: response.params.code,
-                            extraParams: request.codeVerifier ? { code_verifier: request.codeVerifier } : undefined,
+                            extraParams: request?.codeVerifier ? { code_verifier: request.codeVerifier } : undefined,
                             redirectUri: redirectUri,
                         },
                         discovery
@@ -45,7 +49,8 @@ const LoginScreen = ({ onLoginSuccess }) => {
                     onLoginSuccess(tokenResponse);
 
                 } catch (error) {
-                    Alert.alert("Error", error.message || "Something went wrong");
+                    const message = error instanceof Error ? error.message : "Something went wrong";
+                    Alert.alert("Error", message);
                 } finally {
                     setIsLoading(false);
                 }

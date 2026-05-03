@@ -2,6 +2,7 @@ import json
 import logging
 import os
 from datetime import datetime, timedelta, timezone
+from typing import cast
 
 import pika
 import psycopg2
@@ -75,7 +76,7 @@ def calculate_power(irradiance_wm2, temp_c, max_power_w, gamma_pdc, temp_ref):
         irradiance_wm2, temp_c, max_power_w, gamma_pdc, temp_ref
     )
 
-    return max(0.0, round(float(forecasted_dc_power), 2))
+    return max(0.0, round(cast(float, forecasted_dc_power), 2))
 
 
 def main():

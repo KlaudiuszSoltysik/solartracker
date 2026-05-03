@@ -1,9 +1,9 @@
 import * as SecureStore from 'expo-secure-store';
-import { refreshAsync, TokenResponse, revokeAsync } from 'expo-auth-session';
+import { refreshAsync, TokenResponse, revokeAsync, DiscoveryDocument } from 'expo-auth-session';
 
 const TOKEN_KEY = 'solartracker_tokens';
 
-export const saveTokens = async (tokenResponse) => {
+export const saveTokens = async (tokenResponse: TokenResponse) => {
     try {
         await SecureStore.setItemAsync(TOKEN_KEY, JSON.stringify(tokenResponse));
     } catch (error) {
@@ -17,7 +17,7 @@ export const clearTokens = async () => {
     }
 };
 
-export const getValidTokens = async (discovery, clientId) => {
+export const getValidTokens = async (discovery: DiscoveryDocument, clientId: string) => {
     try {
         const storedTokensString = await SecureStore.getItemAsync(TOKEN_KEY);
         if (!storedTokensString) return null;
@@ -48,7 +48,7 @@ export const getValidTokens = async (discovery, clientId) => {
     }
 };
 
-export const performServerLogout = async (discovery, clientId) => {
+export const performServerLogout = async (discovery: DiscoveryDocument, clientId: string) => {
     try {
         const storedTokensString = await SecureStore.getItemAsync(TOKEN_KEY);
         if (storedTokensString && discovery) {
