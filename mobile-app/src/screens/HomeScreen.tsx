@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../utils/types";
 import { API_BASE_URL } from "../../App";
@@ -24,7 +24,7 @@ export default function HomeScreen({ navigation, onLogout }: Props) {
                 setLoading(false);
             })
             .catch(err => {
-                console.error(err);
+                Alert.alert("Error", "Failed to load assets: " + err.message);
                 setLoading(false);
             });
     }, []);

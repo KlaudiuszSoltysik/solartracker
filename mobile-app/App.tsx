@@ -8,19 +8,19 @@ import AssetScreen from "./src/screens/AssetScreen";
 import LoginScreen from "./src/screens/LoginScreen";
 import { Platform, Alert } from 'react-native';
 import * as Device from 'expo-device';
-import * as Notifications from 'expo-notifications';
+import * as Notifications from 'expo-notifications';     
 import Constants from 'expo-constants';
 import * as LocalAuthentication from 'expo-local-authentication';
 
 // export const API_BASE_URL = "https://6c3b-188-33-128-213.ngrok-free.app/api/v1";
 // export const API_BASE_URL = "http://localhost:8001/api/v1";
-export const API_BASE_URL = "http://api.260824.xyz/api/v1";
+export const API_BASE_URL = "https://api.260824.xyz/api/v1";
 
 export const DISCOVERY = {
-        authorizationEndpoint: "https://auth.260824.xyz/realms/solartracker/protocol/openid-connect/auth",
-        tokenEndpoint: "https://auth.260824.xyz/realms/solartracker/protocol/openid-connect/token",
-        revocationEndpoint: "https://auth.260824.xyz/realms/solartracker/protocol/openid-connect/revoke"
-    };
+    authorizationEndpoint: "https://auth.260824.xyz/realms/solartracker/protocol/openid-connect/auth",
+    tokenEndpoint: "https://auth.260824.xyz/realms/solartracker/protocol/openid-connect/token",
+    revocationEndpoint: "https://auth.260824.xyz/realms/solartracker/protocol/openid-connect/revoke"
+};
 
 const CLIENT_ID = "mobile-app";
 
@@ -118,8 +118,8 @@ export default function App() {
     };
 
     const handleLogout = async () => {
-            setIsAuthenticated(false);
-            return;
+        setIsAuthenticated(false);
+        return;
     };
 
     if (!isReady) {

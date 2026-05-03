@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useFocusEffect } from '@react-navigation/native';
-import { ActivityIndicator, Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import {
     VictoryAxis,
     VictoryChart,
@@ -92,7 +92,7 @@ export default function AssetScreen({ route }: any) {
                 wind: { ...prev.wind, real: extractData(json, "wind_mps") }
             }));
         } catch (err) {
-            console.error("Failed to fetch telemetry:", err);
+            Alert.alert("Failed to fetch telemetry: ", String(err));
         }
     };
 
@@ -109,7 +109,7 @@ export default function AssetScreen({ route }: any) {
                 wind: { ...prev.wind, forecast: extractData(json, "wind_speed_mps") }
             }));
         } catch (err) {
-            console.error("Failed to fetch forecast:", err);
+            Alert.alert("Failed to fetch forecast: ", String(err));
         }
     };
 
