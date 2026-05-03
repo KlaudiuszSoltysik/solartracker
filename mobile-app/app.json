@@ -5,11 +5,20 @@
     "version": "1.0.0",
     "scheme": "solartracker",
     "orientation": "default",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1E1E1E"
+    },
     "android": {
-      "edgeToEdgeEnabled": true,
-      "package": "com.ksoltysik.solartracker"
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1E1E1E"
+      },
+      "edgeToEdgeEnabled": true
     },
     "plugins": [
       "expo-web-browser",

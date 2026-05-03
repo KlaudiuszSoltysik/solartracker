@@ -137,7 +137,7 @@ export default function App() {
                     <>
                         <Stack.Screen
                             name="Home"
-                            options={{ title: "Asset List" }}
+                            options={{ headerShown: false }}
                         >
                             {(props) => <HomeScreen {...props} onLogout={handleLogout} />}
                         </Stack.Screen>
@@ -145,7 +145,7 @@ export default function App() {
                         <Stack.Screen
                             name="Asset"
                             component={AssetScreen}
-                            options={({ route }: any) => ({ title: route.params?.name || "Asset" })}
+                            options={{ headerShown: false }}
                         />
                     </>
                 ) : (

@@ -4,7 +4,7 @@
 - [ ] **VPN (OpenVPN):** Postawienie serwera VPN w klastrze. Podłączenie fizycznych układów ESP32 do prywatnej sieci K8s z ominięciem publicznego Wi-Fi, albo wystawienie rabbita na zewnątrz i zabezpieczenie go.
 - [ ] **Argo Events:** Nasłuchiwanie na webhooki (GitHub, Docker Registry) i eventy systemowe.
 - [ ] **Argo Workflows:** Uruchamianie zautomatyzowanych zadań (np. budowanie nowych obrazów Dockera, backup bazy, testy E2E) po wyzwoleniu przez Argo Events.
-- [ ] **Mobile App:** manual mode, jakieś bajery, minimalizacja, poprawki wizualne (top bar), api tylko dla zalogowanych
+- [ ] **Mobile App:** manual mode, minimalizacja apk, api tylko dla zalogowanych, custom splash, icon, powiadomienie
 
 # Usefull commands:
 
