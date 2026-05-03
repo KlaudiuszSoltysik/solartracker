@@ -3,6 +3,7 @@
     "name": "solartracker",
     "slug": "solartracker",
     "version": "1.0.0",
+    "scheme": "solartracker",
     "orientation": "default",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,

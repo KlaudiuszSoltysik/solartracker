@@ -49,6 +49,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                     onLoginSuccess(tokenResponse);
 
                 } catch (error) {
+                    console.error("TOKEN EXCHANGE ERROR:", error);
                     const message = error instanceof Error ? error.message : "Something went wrong";
                     Alert.alert("Error", message);
                 } finally {

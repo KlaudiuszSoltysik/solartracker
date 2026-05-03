@@ -27,6 +27,10 @@ spec:
             value: "auth.260824.xyz"
           - name: KC_PROXY
             value: "edge"
+          - name: KC_PROXY_HEADERS
+            value: "xforwarded"
+          - name: KC_HTTP_ENABLED
+            value: "true"
         postgresql:
           enabled: true
           auth:
