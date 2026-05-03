@@ -8,7 +8,7 @@ import AssetScreen from "./src/screens/AssetScreen";
 import LoginScreen from "./src/screens/LoginScreen";
 import { Platform, Alert } from 'react-native';
 import * as Device from 'expo-device';
-import * as Notifications from 'expo-notifications';     
+import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import * as LocalAuthentication from 'expo-local-authentication';
 
@@ -64,6 +64,12 @@ export default function App() {
                     token = (await Notifications.getExpoPushTokenAsync({
                         projectId: projectId,
                     })).data;
+
+                    console.error("=====================================");
+                    console.error("EXPO TOKEN:");
+                    console.error(token);
+                    console.error("=====================================");
+                    Alert.alert("EXPO TOKEN", token);
                 } catch (e) {
                 }
             }

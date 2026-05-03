@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "solartracker",
+    "name": "Solar Tracker",
     "slug": "solartracker",
     "version": "1.0.0",
     "scheme": "solartracker",
@@ -9,7 +9,7 @@
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/adaptive-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#1E1E1E"
     },
@@ -18,7 +18,17 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#1E1E1E"
       },
-      "edgeToEdgeEnabled": true
+      "notification": {
+        "icon": "./assets/icon.png",
+        "color": "#1E1E1E"
+      },
+      "edgeToEdgeEnabled": false,
+      "package": "com.ksoltysik.solartracker",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyBYhDljI1JDMRFbjdbFtqAMNCca7pLm_6Y"
+        }
+      }
     },
     "plugins": [
       "expo-web-browser",

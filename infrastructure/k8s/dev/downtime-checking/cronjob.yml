@@ -52,8 +52,5 @@ spec:
             - name: MONGODB_DB
               value: "default_db"
             - name: EXPO_PUSH_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: expo-app-creds
-                  key: expo-push-token
+              value: "27017"
           restartPolicy: OnFailure
