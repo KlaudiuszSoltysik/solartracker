@@ -12,7 +12,6 @@ resources:
   - cloudflared/application.yml
 
   - downtime-checking/cronjob.yml
-  - downtime-checking/secret.yml
 
   - esp32-simulator/deployment.yml
 
