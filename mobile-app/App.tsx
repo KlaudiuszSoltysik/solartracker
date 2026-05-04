@@ -12,8 +12,6 @@ import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import * as LocalAuthentication from 'expo-local-authentication';
 
-// export const API_BASE_URL = "https://6c3b-188-33-128-213.ngrok-free.app/api/v1";
-// export const API_BASE_URL = "http://localhost:8001/api/v1";
 export const API_BASE_URL = "https://api.260824.xyz/api/v1";
 
 export const DISCOVERY = {
@@ -39,6 +37,7 @@ Notifications.setNotificationHandler({
 export default function App() {
     const [isReady, setIsReady] = useState(false);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [accessToken, setAccessToken] = useState<string | null>(null);
 
     useEffect(() => {
         async function registerForPushNotificationsAsync() {
@@ -102,14 +101,18 @@ export default function App() {
 
                     if (authResult.success) {
                         setIsAuthenticated(true);
+                        setAccessToken(validTokens.accessToken);
                     } else {
                         setIsAuthenticated(false);
+                        setAccessToken(null);
                     }
                 } else {
                     setIsAuthenticated(false);
+                    setAccessToken(null);
                 }
             } else {
                 setIsAuthenticated(false);
+                setAccessToken(null);
             }
             setIsReady(true);
         };
@@ -145,14 +148,15 @@ export default function App() {
                             name="Home"
                             options={{ headerShown: false }}
                         >
-                            {(props) => <HomeScreen {...props} onLogout={handleLogout} />}
+                            {(props) => <HomeScreen {...props} onLogout={handleLogout} accessToken={accessToken} />}
                         </Stack.Screen>
 
                         <Stack.Screen
                             name="Asset"
-                            component={AssetScreen}
                             options={{ headerShown: false }}
-                        />
+                        >
+                            {(props) => <AssetScreen {...props} accessToken={accessToken} />}
+                        </Stack.Screen>
                     </>
                 ) : (
                     <Stack.Screen

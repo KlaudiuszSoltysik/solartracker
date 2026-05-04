@@ -8,17 +8,29 @@ import MapView, { Marker } from "react-native-maps";
 type Props = {
     navigation: NativeStackNavigationProp<RootStackParamList, "Home">;
     onLogout: () => void;
+    accessToken: string | null;
 };
 
-export default function HomeScreen({ navigation, onLogout }: Props) {
+export default function HomeScreen({ navigation, onLogout, accessToken }: Props) {
     const [assets, setAssets] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [viewMode, setViewMode] = useState<"list" | "map">("list");
     const [selectedAsset, setSelectedAsset] = useState<any>(null);
 
+    const authHeaders = {
+        "Authorization": `Bearer ${accessToken}`,
+        "Content-Type": "application/json"
+    };
+
     useEffect(() => {
-        fetch(`${API_BASE_URL}/assets`)
-            .then(res => res.json())
+        fetch(`${API_BASE_URL}/assets`, {
+            method: "GET",
+            headers: authHeaders
+        })
+            .then(res => {
+                if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                return res.json();
+            })
             .then(json => {
                 setAssets(json);
                 setLoading(false);

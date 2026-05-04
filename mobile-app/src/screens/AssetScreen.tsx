@@ -11,7 +11,12 @@ import {
 } from "victory-native";
 import { API_BASE_URL } from "../../App";
 
-export default function AssetScreen({ route }: any) {
+type Props = {
+    route: any;
+    accessToken: string | null;
+};
+
+export default function AssetScreen({ route, accessToken }: Props) {
     const { deviceId, assetType, name, maxPowerW, lat, lon } = route.params;
 
     const [currentDate, setCurrentDate] = useState(new Date());
@@ -39,6 +44,11 @@ export default function AssetScreen({ route }: any) {
     };
 
     const [data, setData] = useState<AssetData>(initialData);
+
+    const authHeaders = {
+        "Authorization": `Bearer ${accessToken}`,
+        "Content-Type": "application/json"
+    };
 
     const handlePreviousDay = () => {
         const prev = new Date(currentDate);
@@ -81,7 +91,10 @@ export default function AssetScreen({ route }: any) {
 
     const fetchTelemetryData = async (params: string) => {
         try {
-            const res = await fetch(`${API_BASE_URL}/telemetry/${deviceId}${params}`);
+            const res = await fetch(`${API_BASE_URL}/telemetry/${deviceId}${params}`, {
+                method: "GET",
+                headers: authHeaders
+            });
             const json = await res.json();
 
             setData(prev => ({
@@ -98,7 +111,10 @@ export default function AssetScreen({ route }: any) {
 
     const fetchForecastData = async (params: string) => {
         try {
-            const res = await fetch(`${API_BASE_URL}/energy-forecast/${deviceId}${params}`);
+            const res = await fetch(`${API_BASE_URL}/energy-forecast/${deviceId}${params}`, {
+                method: "GET",
+                headers: authHeaders
+            });
             const json = await res.json();
 
             setData(prev => ({
@@ -138,7 +154,9 @@ export default function AssetScreen({ route }: any) {
 
             const connectWebSocket = () => {
                 const WS_BASE_URL = API_BASE_URL.replace(/^http/, 'ws');
-                ws = new WebSocket(`${WS_BASE_URL}/ws/live/${deviceId}`);
+                const wsUrl = `${WS_BASE_URL}/ws/live/${deviceId}?token=${accessToken}`;
+
+                ws = new WebSocket(wsUrl);
 
                 ws.onopen = () => console.log(`WebSocket connected for ${deviceId}`);
 

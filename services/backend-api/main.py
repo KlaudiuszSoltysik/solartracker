@@ -8,10 +8,22 @@ from typing import Any, Dict, List, cast
 
 import aio_pika
 import psycopg2
+import requests
 import uvicorn
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
+from fastapi import (
+    Depends,
+    FastAPI,
+    HTTPException,
+    Query,
+    Security,
+    WebSocket,
+    WebSocketDisconnect,
+    status,
+)
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from jose import JWTError, jwt
 from psycopg2.extras import RealDictCursor
 from pymongo import MongoClient
 
@@ -34,6 +46,11 @@ RABBITMQ_PORT = int(os.environ.get("RABBITMQ_PORT", "5672"))
 RABBITMQ_USERNAME = os.environ.get("RABBITMQ_USERNAME", "admin")
 RABBITMQ_PASSWORD = os.environ.get("RABBITMQ_PASSWORD", "admin")
 
+KEYCLOAK_CERTS_URL = os.environ.get(
+    "KEYCLOAK_CERTS_URL",
+    "https://auth.260824.xyz/realms/solartracker/protocol/openid-connect/certs",
+)
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
@@ -47,6 +64,35 @@ logging.getLogger("uvicorn").setLevel(logging.ERROR)
 logging.getLogger("uvicorn.access").setLevel(logging.ERROR)
 logging.getLogger("uvicorn.error").setLevel(logging.ERROR)
 logging.getLogger("aio_pika").setLevel(logging.ERROR)
+
+security = HTTPBearer()
+
+
+def verify_token_logic(token: str) -> dict:
+    try:
+        jwks_response = requests.get(KEYCLOAK_CERTS_URL, timeout=5)
+        jwks_response.raise_for_status()
+        jwks = jwks_response.json()
+
+        payload = jwt.decode(
+            token, jwks, algorithms=["RS256"], options={"verify_aud": False}
+        )
+        return payload
+    except JWTError as e:
+        logger.error(f"JWT Verification failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
+        )
+    except Exception as e:
+        logger.error(f"Auth server error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Auth server unavailable",
+        )
+
+
+def verify_rest_token(credentials: HTTPAuthorizationCredentials = Security(security)):
+    return verify_token_logic(credentials.credentials)
 
 
 def get_postgres_connection():
@@ -169,6 +215,7 @@ def get_telemetry_history(
     device_id: str,
     start_date: datetime = Query(..., description="Start timestamp (ISO 8601)"),
     end_date: datetime = Query(..., description="End timestamp (ISO 8601)"),
+    user_data: dict = Depends(verify_rest_token),
 ):
     logger.info(
         f"Fetching telemetry for {device_id} | Range: {start_date} to {end_date}."
@@ -199,6 +246,7 @@ def get_energy_forecast(
     device_id: str,
     start_date: datetime = Query(..., description="Start timestamp (ISO 8601)"),
     end_date: datetime = Query(..., description="End timestamp (ISO 8601)"),
+    user_data: dict = Depends(verify_rest_token),
 ):
     logger.info(
         f"Fetching forecast for {device_id} | Range: {start_date} to {end_date}."
@@ -242,7 +290,7 @@ def get_energy_forecast(
 
 
 @app.get("/api/v1/assets")
-def get_all_assets():
+def get_all_assets(user_data: dict = Depends(verify_rest_token)):
     logger.info("Fetching all assets from pv_assets and wind_assets.")
 
     client = get_mongodb_client()
@@ -277,7 +325,15 @@ def get_all_assets():
 
 
 @app.websocket("/api/v1/ws/live/{device_id}")
-async def websocket_live_stream(websocket: WebSocket, device_id: str):
+async def websocket_live_stream(
+    websocket: WebSocket, device_id: str, token: str = Query(...)
+):
+    try:
+        verify_token_logic(token)
+    except HTTPException:
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
+
     await manager.connect(websocket, device_id)
     try:
         while True:
