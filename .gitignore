@@ -5,6 +5,8 @@
 .venv
 
 # Mobile app
+google-services.json
+app.config.js
 node_modules/
 .expo/
 dist/

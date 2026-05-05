@@ -1,12 +1,11 @@
-import React, { useEffect, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
+import React, { useState, useEffect, useRef } from 'react';
+import { View, ActivityIndicator, Alert, Platform, AppState, AppStateStatus } from 'react-native';
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { getValidTokens, saveTokens, performServerLogout, clearTokens } from "./src/utils/AuthService";
 import HomeScreen from "./src/screens/HomeScreen";
 import AssetScreen from "./src/screens/AssetScreen";
 import LoginScreen from "./src/screens/LoginScreen";
-import { Platform, Alert } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import * as LocalAuthentication from 'expo-local-authentication';
@@ -37,6 +36,37 @@ export default function App() {
     const [isReady, setIsReady] = useState(false);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [accessToken, setAccessToken] = useState<string | null>(null);
+
+    const appState = useRef(AppState.currentState);
+
+    useEffect(() => {
+        const subscription = AppState.addEventListener('change', async (nextAppState: AppStateStatus) => {
+            if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
+                if (isAuthenticated) {
+                    const hasHardware = await LocalAuthentication.hasHardwareAsync();
+                    const isEnrolled = await LocalAuthentication.isEnrolledAsync();
+
+                    if (hasHardware && isEnrolled) {
+                        const authResult = await LocalAuthentication.authenticateAsync({
+                            promptMessage: "Welcome back. Unlock SolarTracker",
+                            fallbackLabel: "Use PIN",
+                            cancelLabel: "Cancel",
+                        });
+
+                        if (!authResult.success) {
+                            setIsAuthenticated(false);
+                            setAccessToken(null);
+                        }
+                    }
+                }
+            }
+            appState.current = nextAppState;
+        });
+
+        return () => {
+            subscription.remove();
+        };
+    }, [isAuthenticated]);
 
     useEffect(() => {
         async function registerForPushNotificationsAsync() {
