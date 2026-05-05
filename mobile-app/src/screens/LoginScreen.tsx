@@ -2,11 +2,9 @@ import React, { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import * as WebBrowser from "expo-web-browser";
 import { exchangeCodeAsync, makeRedirectUri, useAuthRequest } from "expo-auth-session";
-import { DISCOVERY } from "../../App";
+import { CLIENT_ID, DISCOVERY } from "../../App";
 
 WebBrowser.maybeCompleteAuthSession();
-
-const CLIENT_ID = "mobile-app";
 
 type LoginScreenProps = {
     onLoginSuccess: (tokenResponse: any) => void;
@@ -32,7 +30,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
 
     useEffect(() => {
         const fetchTokens = async () => {
-            if (response?.type === "success" && !isFetching.current) {
+            if (!response) return;
+
+            if (response.type === "success" && !isFetching.current) {
                 isFetching.current = true;
                 setIsLoading(true);
 
@@ -46,24 +46,23 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                         },
                         DISCOVERY
                     );
-
                     onLoginSuccess(tokenResponse);
-
                 } catch (error) {
-                    const message = error instanceof Error ? error.message : "Something went wrong";
-                    Alert.alert("Error", message);
-
-                    isFetching.current = false;
+                    const message = error instanceof Error ? error.message : "Exchange failed.";
+                    Alert.alert("Token Error", message);
                 } finally {
+                    isFetching.current = false;
                     setIsLoading(false);
                 }
-            } else if (response?.type === "error") {
-                Alert.alert("Error", response.error?.message || "Something went wrong");
+            } else if (response.type === "error") {
+                Alert.alert("Login Error", response.error?.message || "Something went wrong");
+            } else if (response.type === "dismiss") {
+                Alert.alert("Cancelled", "Login window was closed.");
             }
         };
 
         fetchTokens();
-    }, [response, request]);
+    }, [response]);
 
     return (
         <View style={styles.container}>

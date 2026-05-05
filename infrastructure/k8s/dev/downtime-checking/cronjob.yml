@@ -52,5 +52,5 @@ spec:
             - name: MONGODB_DB
               value: "default_db"
             - name: EXPO_PUSH_TOKEN
-              value: "27017"
+              value: "ExponentPushToken[5B452yJcbsbOgH-KednfFZ]"
           restartPolicy: OnFailure

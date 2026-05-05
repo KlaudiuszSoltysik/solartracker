@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, FlatList, StyleSheet, Text, StatusBar, TouchableOpacity, View, Platform } from "react-native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../utils/types";
 import { API_BASE_URL } from "../../App";
@@ -173,7 +173,8 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 16,
-        backgroundColor: "#121212"
+        backgroundColor: "#121212",
+        paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0
     },
     center: {
         flex: 1,

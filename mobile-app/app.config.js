@@ -1,7 +1,7 @@
 // app.config.js
 import 'dotenv/config';
 
-export default{
+export default {
   "expo": {
     "name": "Solar Tracker",
     "slug": "solartracker",
@@ -27,6 +27,7 @@ export default{
       },
       "edgeToEdgeEnabled": false,
       "package": "com.ksoltysik.solartracker",
+      "googleServicesFile": "./google-services.json",
       "config": {
         "googleMaps": {
           "apiKey": process.env.GOOGLE_MAPS_API_KEY

@@ -2,12 +2,11 @@ import React, { useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
-import { getValidTokens, saveTokens } from "./src/utils/AuthService";
+import { getValidTokens, saveTokens, performServerLogout, clearTokens } from "./src/utils/AuthService";
 import HomeScreen from "./src/screens/HomeScreen";
 import AssetScreen from "./src/screens/AssetScreen";
 import LoginScreen from "./src/screens/LoginScreen";
 import { Platform, Alert } from 'react-native';
-import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import * as LocalAuthentication from 'expo-local-authentication';
@@ -20,7 +19,7 @@ export const DISCOVERY = {
     revocationEndpoint: "https://auth.260824.xyz/realms/solartracker/protocol/openid-connect/revoke"
 };
 
-const CLIENT_ID = "mobile-app";
+export const CLIENT_ID = "mobile-app";
 
 const Stack = createStackNavigator();
 
@@ -41,9 +40,7 @@ export default function App() {
 
     useEffect(() => {
         async function registerForPushNotificationsAsync() {
-            let token: string | undefined;
-
-            if (Device.isDevice) {
+            try {
                 const { status: existingStatus } = await Notifications.getPermissionsAsync();
                 let finalStatus = existingStatus;
 
@@ -53,68 +50,75 @@ export default function App() {
                 }
 
                 if (finalStatus !== 'granted') {
-                    Alert.alert('Error', 'No permission for notifications!');
+                    Alert.alert('Push Error', 'Permission for notifications denied!');
                     return;
                 }
 
-                try {
-                    const projectId = Constants.expoConfig?.extra?.eas?.projectId;
+                const projectId = Constants.expoConfig?.extra?.eas?.projectId;
 
-                    token = (await Notifications.getExpoPushTokenAsync({
-                        projectId: projectId,
-                    })).data;
-
-                    console.error("=====================================");
-                    console.error("EXPO TOKEN:");
-                    console.error(token);
-                    console.error("=====================================");
-                    Alert.alert("EXPO TOKEN", token);
-                } catch (e) {
-                }
-            }
-
-            if (Platform.OS === 'android') {
-                await Notifications.setNotificationChannelAsync('default', {
-                    name: 'default',
-                    importance: Notifications.AndroidImportance.MAX,
-                    vibrationPattern: [0, 250, 250, 250],
-                    lightColor: '#FF4757',
+                const tokenData = await Notifications.getExpoPushTokenAsync({
+                    projectId: projectId,
                 });
-            }
 
-            return token;
+                Alert.alert("EXPO PUSH TOKEN", tokenData.data);
+
+                if (Platform.OS === 'android') {
+                    await Notifications.setNotificationChannelAsync('default', {
+                        name: 'default',
+                        importance: Notifications.AndroidImportance.MAX,
+                        vibrationPattern: [0, 250, 250, 250],
+                        lightColor: '#FF4757',
+                    });
+                }
+            } catch (e) {
+                Alert.alert('Push Setup Failed', String(e));
+            }
         }
 
         const checkAuth = async () => {
-            const validTokens = await getValidTokens(DISCOVERY, CLIENT_ID);
+            try {
+                const validTokens = await getValidTokens(DISCOVERY, CLIENT_ID);
 
-            if (validTokens) {
+                if (!validTokens) {
+                    setIsAuthenticated(false);
+                    setAccessToken(null);
+                    setIsReady(true);
+                    return;
+                }
+
                 const hasHardware = await LocalAuthentication.hasHardwareAsync();
                 const isEnrolled = await LocalAuthentication.isEnrolledAsync();
 
-                if (hasHardware && isEnrolled) {
-                    const authResult = await LocalAuthentication.authenticateAsync({
-                        promptMessage: "Unlock SolarTracker",
-                        fallbackLabel: "Use PIN",
-                        cancelLabel: "Cancel",
-                    });
+                if (!hasHardware || !isEnrolled) {
+                    Alert.alert("Security Info", "No biometrics enrolled. Please login manually.");
+                    await clearTokens();
+                    setIsAuthenticated(false);
+                    setAccessToken(null);
+                    setIsReady(true);
+                    return;
+                }
 
-                    if (authResult.success) {
-                        setIsAuthenticated(true);
-                        setAccessToken(validTokens.accessToken);
-                    } else {
-                        setIsAuthenticated(false);
-                        setAccessToken(null);
-                    }
+                const authResult = await LocalAuthentication.authenticateAsync({
+                    promptMessage: "Unlock SolarTracker",
+                    fallbackLabel: "Use PIN",
+                    cancelLabel: "Cancel",
+                });
+
+                if (authResult.success) {
+                    setIsAuthenticated(true);
+                    setAccessToken(validTokens.accessToken);
                 } else {
+                    Alert.alert("Auth Failed", "Biometric verification failed.");
                     setIsAuthenticated(false);
                     setAccessToken(null);
                 }
-            } else {
+            } catch (e) {
+                Alert.alert("Auth Check Error", String(e));
                 setIsAuthenticated(false);
                 setAccessToken(null);
+            } finally {
+                setIsReady(true);
             }
-            setIsReady(true);
         };
 
         registerForPushNotificationsAsync();
@@ -123,12 +127,15 @@ export default function App() {
 
     const handleLoginSuccess = async (tokenResponse: any) => {
         await saveTokens(tokenResponse);
+        setAccessToken(tokenResponse.accessToken);
         setIsAuthenticated(true);
     };
 
     const handleLogout = async () => {
+        await performServerLogout(DISCOVERY, CLIENT_ID);
+        setAccessToken(null);
         setIsAuthenticated(false);
-        return;
+        Alert.alert("Logged Out", "Your session has been securely closed.");
     };
 
     if (!isReady) {

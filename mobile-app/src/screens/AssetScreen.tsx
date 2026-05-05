@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useFocusEffect } from '@react-navigation/native';
-import { ActivityIndicator, Alert, Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, Dimensions, Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import {
     VictoryAxis,
     VictoryChart,
@@ -355,7 +355,8 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: "#121212",
-        padding: 16
+        padding: 16,
+        paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0
     },
 
     metaCard: {
