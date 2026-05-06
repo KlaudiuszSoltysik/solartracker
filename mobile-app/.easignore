@@ -1,12 +1,3 @@
-# Global
-.idea
-.vscode
-.env
-.venv
-
-# Mobile app
-google-services.json
-app.config.js
 *.apk
 node_modules/
 .expo/
@@ -29,11 +20,3 @@ yarn-error.*
 *.tsbuildinfo
 /ios
 /android
-
-# Terraform
-.terraform/
-.terraform.lock.hcl
-*.tfstate
-*.tfstate.backup
-terraform.tfvars
-*.auto.tfvars

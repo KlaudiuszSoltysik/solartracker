@@ -29,8 +29,11 @@ echo "📊 Grafana:         http://localhost:3000"
 kubectl port-forward svc/ollama-service 11434:11434 > /dev/null 2>&1 &
 echo "🤖 Ollama:          http://localhost:11434"
 
-kubectl port-forward svc/keycloak -n infrastructure 9090:80 > /dev/null 2>&1 &
-echo "🔒 Keycloak:        http://localhost:9090"
+kubectl port-forward svc/keycloak -n infrastructure 9090:80 5433:5432 > /dev/null 2>&1 &
+echo "🔒 Keycloak:        http://localhost:9090           http://localhost:5433"
+
+kubectl port-forward svc/keycloak-postgresql -n infrastructure 5433:5432 > /dev/null 2>&1 &
+echo "🔒 Keycloak DB:     http://localhost:5433"
 
 kubectl port-forward svc/backend-api 8000:8000 > /dev/null 2>&1 &
 echo "⚙️ Backend API:     http://localhost:8000/docs"
