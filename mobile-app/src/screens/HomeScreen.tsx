@@ -146,8 +146,9 @@ export default function HomeScreen({ navigation, onLogout, accessToken }: Props)
                             <View style={styles.cardContent}>
                                 <View>
                                     <Text style={styles.title}>{selectedAsset.farm_name}</Text>
-                                    <Text>{selectedAsset.max_power_w} W</Text>
-                                    <Text>{selectedAsset.asset_type === "pv" ? "☀️ Solar" : "🌬️ Wind"}</Text>
+                                    <Text style={styles.cardSubtitle}>
+                                        {selectedAsset.max_power_w} W • {selectedAsset.asset_type === "pv" ? "☀️ Solar" : "🌬️ Wind"}
+                                    </Text>
                                 </View>
                                 <Text style={styles.cardArrow}>➔</Text>
                             </View>
