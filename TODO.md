@@ -8,12 +8,14 @@
 
 # Usefull commands:
 
-kubectl create secret generic expo-app-creds \
- --from-literal=expo-push-token="" \
+kubectl create secret generic keycloak-creds \
+ --from-literal=admin-password="admin" \
+ --from-literal=password="admin" \
+ --from-literal=postgres-password="admin" \
  -n default \
  --dry-run=client -o yaml > raw-secret.yml
 
-kubeseal --cert mycert.pem --format=yaml < raw-secret.yml > infrastructure/k8s/dev/downtime-checking/secret.yml
+kubeseal --cert mycert.pem --format=yaml < raw-secret.yml > infrastructure/k8s/dev/keycloak/secret-default.yml
 
 rm raw-secret.yml
 
