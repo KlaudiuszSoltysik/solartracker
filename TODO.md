@@ -20,15 +20,3 @@ rm raw-secret.yml
 kubectl get secret ai-agent-creds -n ai-agent -o jsonpath="{.data.github-token}" | base64 --decode ; echo
 
 kubectl apply -f infrastructure/k8s/dev/observability/prometheus-app.yml -n argocd
-
-CREATE TABLE companies (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    asset_ids TEXT[] DEFAULT '{}'
-);
-
-CREATE TABLE users (
-    id VARCHAR(255) PRIMARY KEY,
-    company_id INTEGER REFERENCES companies(id) ON DELETE SET NULL,
-    expo_push_token VARCHAR(255)
-);

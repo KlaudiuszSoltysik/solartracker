@@ -27,6 +27,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer
 from jose import JWTError, jwt
 from psycopg2.extras import RealDictCursor
+from pydantic import BaseModel
 from pymongo import MongoClient
 
 load_dotenv()
@@ -140,42 +141,6 @@ def get_mongodb_client():
     return MongoClient(uri)
 
 
-def get_user_allowed_asset_ids(user_data):
-    user_id = user_data.get("sub")
-
-    allowed_asset_ids = []
-
-    try:
-        conn = get_keycloak_pg_connection()
-        with conn.cursor() as cursor:
-            cursor.execute(
-                """
-                SELECT c.asset_ids
-                FROM users u
-                JOIN companies c ON u.company_id = c.id
-                WHERE u.id = %s
-            """,
-                (user_id,),
-            )
-            result = cast(Dict[str, Any], cursor.fetchone())
-
-            if result and result.get("asset_ids"):
-                allowed_asset_ids = result["asset_ids"]
-            else:
-                logger.info(f"User {user_id} has no assigned company or assets.")
-                allowed_asset_ids = []
-    except Exception as e:
-        logger.error(f"PostgreSQL query failed: {str(e)}")
-        raise HTTPException(
-            status_code=500, detail="Database error during permission check"
-        )
-    finally:
-        if "conn" in locals() and conn:
-            conn.close()
-
-    return allowed_asset_ids
-
-
 async def consume_rabbitmq(manager):
     while True:
         try:
@@ -214,6 +179,42 @@ async def consume_rabbitmq(manager):
         except Exception as e:
             logger.error(f"RabbitMQ consumer error: {e}. Retrying in 5 seconds...")
             await asyncio.sleep(5)
+
+
+def get_user_allowed_asset_ids(user_data):
+    user_id = user_data.get("sub")
+
+    allowed_asset_ids = []
+
+    try:
+        conn = get_keycloak_pg_connection()
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT c.asset_ids
+                FROM users u
+                JOIN companies c ON u.company_id = c.id
+                WHERE u.id = %s
+            """,
+                (user_id,),
+            )
+            result = cast(Dict[str, Any], cursor.fetchone())
+
+            if result and result.get("asset_ids"):
+                allowed_asset_ids = result["asset_ids"]
+            else:
+                logger.info(f"User {user_id} has no assigned company or assets.")
+                allowed_asset_ids = []
+    except Exception as e:
+        logger.error(f"PostgreSQL query failed: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail="Database error during permission check"
+        )
+    finally:
+        if "conn" in locals() and conn:
+            conn.close()
+
+    return allowed_asset_ids
 
 
 class ConnectionManager:
@@ -424,6 +425,44 @@ def get_all_assets(user_data: dict = Depends(verify_rest_token)):
 
     finally:
         client.close()
+
+
+class PushTokenUpdate(BaseModel):
+    token: str
+
+
+@app.post("/api/v1/update-push-token")
+def update_push_token(
+    payload: PushTokenUpdate,
+    user_data: dict = Depends(verify_rest_token),
+):
+    logger.info(f"Updating push token for user {user_data.get('sub')}.")
+
+    user_id = user_data.get("sub")
+
+    try:
+        conn = get_keycloak_pg_connection()
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                UPDATE users
+                SET expo_push_token = %s
+                WHERE id = %s
+                """,
+                (payload.token, user_id),
+            )
+            conn.commit()
+
+        logger.info("Push token updated successfully.")
+
+    except Exception as e:
+        logger.error(f"PostgreSQL query failed: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail="Database error during permission check"
+        )
+    finally:
+        if "conn" in locals() and conn:
+            conn.close()
 
 
 @app.websocket("/api/v1/ws/live/{device_id}")
