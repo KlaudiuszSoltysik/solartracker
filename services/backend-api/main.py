@@ -10,6 +10,8 @@ import aio_pika
 import psycopg2
 import requests
 import uvicorn
+from bson.errors import InvalidId
+from bson.objectid import ObjectId
 from dotenv import load_dotenv
 from fastapi import (
     Depends,
@@ -22,7 +24,7 @@ from fastapi import (
     status,
 )
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.security import HTTPBearer
 from jose import JWTError, jwt
 from psycopg2.extras import RealDictCursor
 from pymongo import MongoClient
@@ -46,6 +48,12 @@ RABBITMQ_PORT = int(os.environ.get("RABBITMQ_PORT", "5672"))
 RABBITMQ_USERNAME = os.environ.get("RABBITMQ_USERNAME", "admin")
 RABBITMQ_PASSWORD = os.environ.get("RABBITMQ_PASSWORD", "admin")
 
+KEYCLOAK_PG_HOST = os.environ.get("KEYCLOAK_PG_HOST", "localhost")
+KEYCLOAK_PG_PORT = os.environ.get("KEYCLOAK_PG_PORT", "5433")
+KEYCLOAK_PG_USERNAME = os.environ.get("KEYCLOAK_PG_USERNAME", "admin")
+KEYCLOAK_PG_PASSWORD = os.environ.get("KEYCLOAK_PG_PASSWORD", "admin")
+KEYCLOAK_PG_NAME = os.environ.get("KEYCLOAK_PG_NAME", "keycloak_db")
+
 KEYCLOAK_CERTS_URL = os.environ.get(
     "KEYCLOAK_CERTS_URL",
     "https://auth.260824.xyz/realms/solartracker/protocol/openid-connect/certs",
@@ -68,7 +76,7 @@ logging.getLogger("aio_pika").setLevel(logging.ERROR)
 security = HTTPBearer()
 
 
-def verify_token_logic(token: str) -> dict:
+def verify_token_logic(token):
     try:
         jwks_response = requests.get(KEYCLOAK_CERTS_URL, timeout=5)
         jwks_response.raise_for_status()
@@ -91,7 +99,7 @@ def verify_token_logic(token: str) -> dict:
         )
 
 
-def verify_rest_token(credentials: HTTPAuthorizationCredentials = Security(security)):
+def verify_rest_token(credentials=Security(security)):
     return verify_token_logic(credentials.credentials)
 
 
@@ -111,44 +119,64 @@ def get_postgres_connection():
         raise HTTPException(status_code=500, detail="Database connection error")
 
 
+def get_keycloak_pg_connection():
+    try:
+        conn = psycopg2.connect(
+            host=KEYCLOAK_PG_HOST,
+            port=KEYCLOAK_PG_PORT,
+            user=KEYCLOAK_PG_USERNAME,
+            password=KEYCLOAK_PG_PASSWORD,
+            dbname=KEYCLOAK_PG_NAME,
+            cursor_factory=RealDictCursor,
+        )
+        return conn
+    except Exception as e:
+        logger.error(f"Database connection failed: {e}.")
+        raise HTTPException(status_code=500, detail="Database connection error")
+
+
 def get_mongodb_client():
     uri = f"mongodb://{MONGODB_USERNAME}:{MONGODB_PASSWORD}@{MONGODB_HOST}:{MONGODB_PORT}/"
     return MongoClient(uri)
 
 
-class ConnectionManager:
-    def __init__(self):
-        self.active_connections: Dict[str, List[WebSocket]] = {}
+def get_user_allowed_asset_ids(user_data):
+    user_id = user_data.get("sub")
 
-    async def connect(self, websocket: WebSocket, device_id: str):
-        await websocket.accept()
-        if device_id not in self.active_connections:
-            self.active_connections[device_id] = []
-        self.active_connections[device_id].append(websocket)
-        logger.info(
-            f"WebSocket connected | Device: {device_id} | Total clients for device: {len(self.active_connections[device_id])}"
+    allowed_asset_ids = []
+
+    try:
+        conn = get_keycloak_pg_connection()
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT c.asset_ids
+                FROM users u
+                JOIN companies c ON u.company_id = c.id
+                WHERE u.id = %s
+            """,
+                (user_id,),
+            )
+            result = cast(Dict[str, Any], cursor.fetchone())
+
+            if result and result.get("asset_ids"):
+                allowed_asset_ids = result["asset_ids"]
+            else:
+                logger.info(f"User {user_id} has no assigned company or assets.")
+                allowed_asset_ids = []
+    except Exception as e:
+        logger.error(f"PostgreSQL query failed: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail="Database error during permission check"
         )
+    finally:
+        if "conn" in locals() and conn:
+            conn.close()
 
-    def disconnect(self, websocket: WebSocket, device_id: str):
-        if device_id in self.active_connections:
-            self.active_connections[device_id].remove(websocket)
-            if not self.active_connections[device_id]:
-                del self.active_connections[device_id]
-            logger.info(f"WebSocket disconnected | Device: {device_id}")
-
-    async def broadcast_to_device(self, device_id: str, message: dict):
-        if device_id in self.active_connections:
-            for connection in self.active_connections[device_id]:
-                try:
-                    await connection.send_json(message)
-                except Exception as e:
-                    logger.error(f"Failed to send WS message: {e}")
+    return allowed_asset_ids
 
 
-manager = ConnectionManager()
-
-
-async def consume_rabbitmq():
+async def consume_rabbitmq(manager):
     while True:
         try:
             connection = await aio_pika.connect_robust(
@@ -188,11 +216,43 @@ async def consume_rabbitmq():
             await asyncio.sleep(5)
 
 
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: Dict[str, List[WebSocket]] = {}
+
+    async def connect(self, websocket: WebSocket, device_id: str):
+        await websocket.accept()
+        if device_id not in self.active_connections:
+            self.active_connections[device_id] = []
+        self.active_connections[device_id].append(websocket)
+        logger.info(
+            f"WebSocket connected | Device: {device_id} | Total clients for device: {len(self.active_connections[device_id])}"
+        )
+
+    def disconnect(self, websocket, device_id):
+        if device_id in self.active_connections:
+            self.active_connections[device_id].remove(websocket)
+            if not self.active_connections[device_id]:
+                del self.active_connections[device_id]
+            logger.info(f"WebSocket disconnected | Device: {device_id}")
+
+    async def broadcast_to_device(self, device_id, message):
+        if device_id in self.active_connections:
+            for connection in self.active_connections[device_id]:
+                try:
+                    await connection.send_json(message)
+                except Exception as e:
+                    logger.error(f"Failed to send WS message: {e}")
+
+
+manager = ConnectionManager()
+
+
 @asynccontextmanager
 async def lifespan(app):
     logger.info("Starting API...")
 
-    asyncio.create_task(consume_rabbitmq())
+    asyncio.create_task(consume_rabbitmq(manager))
 
     yield
 
@@ -220,6 +280,20 @@ def get_telemetry_history(
     logger.info(
         f"Fetching telemetry for {device_id} | Range: {start_date} to {end_date}."
     )
+
+    try:
+        allowed_asset_ids = get_user_allowed_asset_ids(user_data)
+    except Exception as e:
+        logger.error(f"Error occurred while fetching allowed asset IDs: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+    if device_id not in allowed_asset_ids:
+        logger.warning(
+            f"Unauthorized access attempt to device {device_id} by user {user_data.get('sub')}."
+        )
+        raise HTTPException(
+            status_code=403, detail="Forbidden: You don't have access to this device"
+        )
 
     conn = get_postgres_connection()
     try:
@@ -251,6 +325,20 @@ def get_energy_forecast(
     logger.info(
         f"Fetching forecast for {device_id} | Range: {start_date} to {end_date}."
     )
+
+    try:
+        allowed_asset_ids = get_user_allowed_asset_ids(user_data)
+    except Exception as e:
+        logger.error(f"Error occurred while fetching allowed asset IDs: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+    if device_id not in allowed_asset_ids:
+        logger.warning(
+            f"Unauthorized access attempt to device {device_id} by user {user_data.get('sub')}."
+        )
+        raise HTTPException(
+            status_code=403, detail="Forbidden: You don't have access to this device"
+        )
 
     conn = get_postgres_connection()
     try:
@@ -284,26 +372,40 @@ def get_energy_forecast(
         conn.close()
 
 
-# @app.get("/api/v1/current-state/{device_id}")
-# def get_current_state(device_id: str):
-#     pass
-
-
 @app.get("/api/v1/assets")
 def get_all_assets(user_data: dict = Depends(verify_rest_token)):
     logger.info("Fetching all assets from pv_assets and wind_assets.")
+
+    try:
+        allowed_asset_ids = get_user_allowed_asset_ids(user_data)
+    except Exception as e:
+        logger.error(f"Error occurred while fetching allowed asset IDs: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+    mongo_object_ids = []
+
+    if allowed_asset_ids:
+        for asset_id_str in allowed_asset_ids:
+            try:
+                mongo_object_ids.append(ObjectId(asset_id_str))
+            except InvalidId:
+                logger.warning(
+                    f"Invalid MongoDB ObjectId found in PostgreSQL: {asset_id_str}"
+                )
+
+        mongo_filter = {"_id": {"$in": mongo_object_ids}}
 
     client = get_mongodb_client()
 
     try:
         db = client[MONGODB_DB]
 
-        pv_cursor = db["assets_pv"].find({}, {"_id": 0})
+        pv_cursor = db["assets_pv"].find(mongo_filter, {"_id": 0})
         pv_assets = list(pv_cursor)
         for asset in pv_assets:
             asset["asset_type"] = "pv"
 
-        wind_cursor = db["assets_wind"].find({}, {"_id": 0})
+        wind_cursor = db["assets_wind"].find(mongo_filter, {"_id": 0})
         wind_assets = list(wind_cursor)
         for asset in wind_assets:
             asset["asset_type"] = "wind"
@@ -329,17 +431,35 @@ async def websocket_live_stream(
     websocket: WebSocket, device_id: str, token: str = Query(...)
 ):
     try:
-        verify_token_logic(token)
-    except HTTPException:
+        user_data = verify_token_logic(token)
+    except Exception as e:
+        logger.warning(f"Invalid WS token for device {device_id}: {str(e)}")
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
 
+    try:
+        allowed_asset_ids = get_user_allowed_asset_ids(user_data)
+    except Exception as e:
+        logger.error(f"Failed to fetch permissions for WS: {str(e)}")
+        await websocket.close(code=status.WS_1011_INTERNAL_ERROR)
+        return
+
+    if device_id not in allowed_asset_ids:
+        logger.warning(
+            f"Unauthorized WS access attempt to device {device_id} by user {user_data.get('sub')}."
+        )
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
+
+    await websocket.accept()
     await manager.connect(websocket, device_id)
+
     try:
         while True:
             await websocket.receive_text()
     except WebSocketDisconnect:
         manager.disconnect(websocket, device_id)
+        logger.info(f"WebSocket disconnected for device {device_id}")
 
 
 if __name__ == "__main__":

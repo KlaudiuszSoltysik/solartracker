@@ -39,6 +39,21 @@ spec:
             username: "keycloak"
             database: "keycloak_db"
             existingSecret: "keycloak-creds"
+          primary:
+            initdb:
+              scripts:
+                init_solar_tables.sql: |
+                  CREATE TABLE IF NOT EXISTS companies (
+                      id SERIAL PRIMARY KEY,
+                      name VARCHAR(255) NOT NULL,
+                      asset_ids TEXT[] DEFAULT '{}'
+                  );
+                  
+                  CREATE TABLE IF NOT EXISTS users (
+                      id VARCHAR(255) PRIMARY KEY,
+                      company_id INTEGER REFERENCES companies(id) ON DELETE SET NULL,
+                      expo_push_token VARCHAR(255)
+                  );
   destination:
     server: "https://kubernetes.default.svc"
     namespace: infrastructure

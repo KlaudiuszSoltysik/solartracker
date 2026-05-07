@@ -71,6 +71,19 @@ spec:
             secretKeyRef:
               name: rabbitmq-creds
               key: password
+        - name: KEYCLOAK_PG_HOST
+          value: "keycloak-postgresql"
+        - name: KEYCLOAK_PG_PORT
+          value: "5432"
+        - name: KEYCLOAK_PG_USERNAME
+          value: "keycloak"
+        - name: KEYCLOAK_PG_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: keycloak-creds
+              key: postgres-password
+        - name: KEYCLOAK_PG_DB
+          value: "keycloak_db"
         - name: KEYCLOAK_CERTS_URL
           value: "https://auth.260824.xyz/realms/solartracker/protocol/openid-connect/certs"
 ---
