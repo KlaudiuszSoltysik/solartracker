@@ -26,5 +26,3 @@ RUN install -m 0755 -d /etc/apt/keyrings && \
 
 RUN curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash && \
     mv kustomize /usr/local/bin/
-
-USER runner

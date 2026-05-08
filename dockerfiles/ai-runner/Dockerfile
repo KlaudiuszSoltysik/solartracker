@@ -22,5 +22,3 @@ RUN mkdir -p /etc/apt/keyrings && \
     echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | tee /etc/apt/sources.list.d/gierens.list && \
     apt-get update && apt-get install -y eza && \
     rm -rf /var/lib/apt/lists/*
-
-USER runner
