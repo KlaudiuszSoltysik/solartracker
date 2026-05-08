@@ -10,8 +10,6 @@ import aio_pika
 import psycopg2
 import requests
 import uvicorn
-from bson.errors import InvalidId
-from bson.objectid import ObjectId
 from dotenv import load_dotenv
 from fastapi import (
     Depends,
@@ -181,17 +179,17 @@ async def consume_rabbitmq(manager):
             await asyncio.sleep(5)
 
 
-def get_user_allowed_asset_ids(user_data):
+def get_user_allowed_device_ids(user_data):
     user_id = user_data.get("sub")
 
-    allowed_asset_ids = []
+    allowed_device_ids = []
 
     try:
         conn = get_keycloak_pg_connection()
         with conn.cursor() as cursor:
             cursor.execute(
                 """
-                SELECT c.asset_ids
+                SELECT c.device_ids
                 FROM users u
                 JOIN companies c ON u.company_id = c.id
                 WHERE u.id = %s
@@ -200,11 +198,11 @@ def get_user_allowed_asset_ids(user_data):
             )
             result = cast(Dict[str, Any], cursor.fetchone())
 
-            if result and result.get("asset_ids"):
-                allowed_asset_ids = result["asset_ids"]
+            if result and result.get("device_ids"):
+                allowed_device_ids = result["device_ids"]
             else:
                 logger.info(f"User {user_id} has no assigned company or assets.")
-                allowed_asset_ids = []
+                allowed_device_ids = []
     except Exception as e:
         logger.error(f"PostgreSQL query failed: {str(e)}")
         raise HTTPException(
@@ -214,7 +212,7 @@ def get_user_allowed_asset_ids(user_data):
         if "conn" in locals() and conn:
             conn.close()
 
-    return allowed_asset_ids
+    return allowed_device_ids
 
 
 class ConnectionManager:
@@ -283,12 +281,12 @@ def get_telemetry_history(
     )
 
     try:
-        allowed_asset_ids = get_user_allowed_asset_ids(user_data)
+        allowed_device_ids = get_user_allowed_device_ids(user_data)
     except Exception as e:
         logger.error(f"Error occurred while fetching allowed asset IDs: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
-    if device_id not in allowed_asset_ids:
+    if device_id not in allowed_device_ids:
         logger.warning(
             f"Unauthorized access attempt to device {device_id} by user {user_data.get('sub')}."
         )
@@ -328,12 +326,12 @@ def get_energy_forecast(
     )
 
     try:
-        allowed_asset_ids = get_user_allowed_asset_ids(user_data)
+        allowed_device_ids = get_user_allowed_device_ids(user_data)
     except Exception as e:
         logger.error(f"Error occurred while fetching allowed asset IDs: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
-    if device_id not in allowed_asset_ids:
+    if device_id not in allowed_device_ids:
         logger.warning(
             f"Unauthorized access attempt to device {device_id} by user {user_data.get('sub')}."
         )
@@ -378,23 +376,12 @@ def get_all_assets(user_data: dict = Depends(verify_rest_token)):
     logger.info("Fetching all assets from pv_assets and wind_assets.")
 
     try:
-        allowed_asset_ids = get_user_allowed_asset_ids(user_data)
+        allowed_device_ids = get_user_allowed_device_ids(user_data)
     except Exception as e:
         logger.error(f"Error occurred while fetching allowed asset IDs: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
-    mongo_object_ids = []
-
-    if allowed_asset_ids:
-        for asset_id_str in allowed_asset_ids:
-            try:
-                mongo_object_ids.append(ObjectId(asset_id_str))
-            except InvalidId:
-                logger.warning(
-                    f"Invalid MongoDB ObjectId found in PostgreSQL: {asset_id_str}"
-                )
-
-        mongo_filter = {"_id": {"$in": mongo_object_ids}}
+    mongo_filter = {"device_id": {"$in": allowed_device_ids}}
 
     client = get_mongodb_client()
 
@@ -477,13 +464,13 @@ async def websocket_live_stream(
         return
 
     try:
-        allowed_asset_ids = get_user_allowed_asset_ids(user_data)
+        allowed_device_ids = get_user_allowed_device_ids(user_data)
     except Exception as e:
         logger.error(f"Failed to fetch permissions for WS: {str(e)}")
         await websocket.close(code=status.WS_1011_INTERNAL_ERROR)
         return
 
-    if device_id not in allowed_asset_ids:
+    if device_id not in allowed_device_ids:
         logger.warning(
             f"Unauthorized WS access attempt to device {device_id} by user {user_data.get('sub')}."
         )

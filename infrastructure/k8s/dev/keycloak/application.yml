@@ -46,7 +46,7 @@ spec:
                   CREATE TABLE IF NOT EXISTS companies (
                       id SERIAL PRIMARY KEY,
                       name VARCHAR(255) NOT NULL,
-                      asset_ids TEXT[] DEFAULT '{}'
+                      device_ids TEXT[] DEFAULT '{}'
                   );
                   
                   CREATE TABLE IF NOT EXISTS users (
