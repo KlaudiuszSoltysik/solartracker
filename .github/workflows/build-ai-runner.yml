@@ -30,4 +30,4 @@ jobs:
         with:
           context: ./dockerfiles/ai-runner
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/ai-runner:latest
+          tags: ghcr.io/klaudiuszsoltysik/ai-runner:latest
