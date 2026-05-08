@@ -6,6 +6,7 @@ on:
       - master
     paths:
       - 'infrastructure/terraform/cloudflare/**'
+      - '.github/workflows/terraform-cloudflare.yml'
 
 jobs:
   terraform:

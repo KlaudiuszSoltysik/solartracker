@@ -6,37 +6,61 @@ on:
     paths:
       - 'services/**'
       - 'cron-jobs/**'
-      - '.github/workflows/**'
+      - '.github/workflows/build-general-images.yml'
 
 permissions:
   packages: write
-  contents: read
+  contents: write
 
 concurrency:
   group: build-docker-images-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      services: ${{ steps.filter.outputs.changes }}
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Filter changed paths
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            backend-api: 'services/backend-api/**'
+            telemetry-processor: 'services/telemetry-processor/**'
+            esp32-simulator: 'services/esp32-simulator/**'
+            solar-forecast: 'cron-jobs/solar-forecast/**'
+            downtime-checking: 'cron-jobs/downtime-checking/**'
+
   build-and-push:
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.services != '[]' && needs.detect-changes.outputs.services != '' }}
     runs-on: k8s-infra-runner
     
     strategy:
       matrix:
-        include:
-          - name: backend-api
-            path: services/backend-api
-          - name: telemetry-processor
-            path: services/telemetry-processor
-          - name: esp32-simulator
-            path: services/esp32-simulator
-          - name: solar-forecast
-            path: cron-jobs/solar-forecast
-          - name: downtime-checking
-            path: cron-jobs/downtime-checking
+        name: ${{ fromJSON(needs.detect-changes.outputs.services) }}
+      fail-fast: false
 
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Determine Context Path
+        id: set-path
+        run: |
+          if [ -d "services/${{ matrix.name }}" ]; then
+            echo "CONTEXT_PATH=services/${{ matrix.name }}" >> $GITHUB_ENV
+          else
+            echo "CONTEXT_PATH=cron-jobs/${{ matrix.name }}" >> $GITHUB_ENV
+          fi
 
       - name: Log in to the Container registry
         uses: docker/login-action@v3
@@ -52,12 +76,25 @@ jobs:
           images: ghcr.io/klaudiuszsoltysik/solartracker/${{ matrix.name }}
           tags: |
             type=sha,format=short
-            type=ref,event=branch
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./${{ matrix.path }}
+          context: ./${{ env.CONTEXT_PATH }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Update Kustomization and Push
+        working-directory: ./infrastructure/k8s/dev
+        run: |
+          kustomize edit set image ${{ matrix.name }}=ghcr.io/klaudiuszsoltysik/solartracker/${{ matrix.name }}:sha-${GITHUB_SHA::7}
+          
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          
+          git add kustomization.yaml
+          git commit -m "chore: update ${{ matrix.name }} image tag to sha-${GITHUB_SHA::7} [skip ci]"
+          
+          git pull --rebase origin master
+          git push origin master

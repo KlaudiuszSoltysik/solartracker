@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y \
     gnupg && \
     add-apt-repository ppa:deadsnakes/ppa -y && \
     apt-get update && \
-    apt-get install -y python3.12 python3.12-venv python3.12-distutils
+    apt-get install -y python3.12 python3.12-venv python3.12-dev
 
 RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.12 && \
     update-alternatives --install /usr/bin/python python /usr/bin/python3.12 1 && \

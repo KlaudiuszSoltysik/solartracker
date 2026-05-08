@@ -5,6 +5,7 @@ on:
     branches: [ "master" ]
     paths:
       - 'dockerfiles/infrastructure-runner/**'
+      - '.github/workflows/build-infrastructure-runner.yml'
 
 permissions:
   packages: write

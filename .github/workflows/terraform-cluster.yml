@@ -6,6 +6,7 @@ on:
       - master
     paths:
       - 'infrastructure/terraform/cluster/**'
+      - '.github/workflows/terraform-cluster.yml'
 
 jobs:
   terraform:

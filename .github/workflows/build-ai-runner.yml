@@ -5,6 +5,7 @@ on:
     branches: [ "master" ]
     paths:
       - 'dockerfiles/ai-runner/**'
+      - '.github/workflows/build-ai-runner.yml'
 
 permissions:
   packages: write
