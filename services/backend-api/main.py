@@ -477,7 +477,6 @@ async def websocket_live_stream(
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
 
-    await websocket.accept()
     await manager.connect(websocket, device_id)
 
     try:
