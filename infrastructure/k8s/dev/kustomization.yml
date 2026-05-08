@@ -21,7 +21,6 @@ resources:
 
   - keycloak/application.yml
   - keycloak/secret.yml
-  - keycloak/secret-default.yml
 
   - mongodb/application.yml
   - mongodb/secret.yml
