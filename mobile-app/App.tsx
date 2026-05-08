@@ -91,7 +91,7 @@ export default function App() {
                 }
 
                 if (finalStatus !== "granted") {
-                    Alert.alert("Push Error", "Permission for notifications denied!");
+                    Alert.alert("Push Notification Error", "Permission for notifications denied!");
                     return;
                 }
 
@@ -111,8 +111,8 @@ export default function App() {
                         lightColor: "#FF4757",
                     });
                 }
-            } catch (e) {
-                Alert.alert("Push Setup Failed", String(e));
+            } catch (error) {
+                Alert.alert("Push Setup Failed", String(error));
             }
         }
 
@@ -156,8 +156,11 @@ export default function App() {
                     setIsAuthenticated(false);
                     setAccessToken(null);
                 }
-            } catch (e) {
-                Alert.alert("Auth Check Error", String(e));
+            } catch (error) {
+                Alert.alert(
+                    "Auth Check Error",
+                    String(error)
+                );
                 setIsAuthenticated(false);
                 setAccessToken(null);
             } finally {
@@ -188,7 +191,7 @@ export default function App() {
                 } catch (error) {
                     Alert.alert(
                         "Push Token Error",
-                        "Failed to send push token to server.",
+                        String(error)
                     );
                 }
             }
@@ -207,7 +210,6 @@ export default function App() {
         await performServerLogout(DISCOVERY, CLIENT_ID);
         setAccessToken(null);
         setIsAuthenticated(false);
-        Alert.alert("Logged Out", "Your session has been securely closed.");
     };
 
     if (!isReady) {

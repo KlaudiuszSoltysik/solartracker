@@ -104,8 +104,8 @@ export default function AssetScreen({ route, accessToken }: Props) {
                 temp: { ...prev.temp, real: extractData(json, "temp_c") },
                 wind: { ...prev.wind, real: extractData(json, "wind_mps") }
             }));
-        } catch (err) {
-            Alert.alert("Failed to fetch telemetry: ", String(err));
+        } catch (error) {
+            Alert.alert("Failed to fetch telemetry: ", String(error));
         }
     };
 
@@ -124,8 +124,8 @@ export default function AssetScreen({ route, accessToken }: Props) {
                 temp: { ...prev.temp, forecast: extractData(json, "temp_c") },
                 wind: { ...prev.wind, forecast: extractData(json, "wind_speed_mps") }
             }));
-        } catch (err) {
-            Alert.alert("Failed to fetch forecast: ", String(err));
+        } catch (error) {
+            Alert.alert("Failed to fetch forecast: ", String(error));
         }
     };
 

@@ -4,7 +4,7 @@ metadata:
   name: solar-forecast
   namespace: default
 spec:
-  schedule: "* * * * *"
+  schedule: "0 * * * *"
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 1
   jobTemplate:

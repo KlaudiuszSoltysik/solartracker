@@ -6,7 +6,6 @@
 
 # Mobile app
 google-services.json
-app.config.js
 *.apk
 node_modules/
 .expo/

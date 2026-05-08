@@ -48,8 +48,10 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                     );
                     onLoginSuccess(tokenResponse);
                 } catch (error) {
-                    const message = error instanceof Error ? error.message : "Exchange failed.";
-                    Alert.alert("Token Error", message);
+                    Alert.alert(
+                        "Push Token Error",
+                        String(error)
+                    );
                 } finally {
                     isFetching.current = false;
                     setIsLoading(false);

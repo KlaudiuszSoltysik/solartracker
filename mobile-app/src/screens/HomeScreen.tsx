@@ -35,8 +35,11 @@ export default function HomeScreen({ navigation, onLogout, accessToken }: Props)
                 setAssets(json);
                 setLoading(false);
             })
-            .catch(err => {
-                Alert.alert("Error", "Failed to load assets: " + err.message);
+            .catch(error => {
+                Alert.alert(
+                    "Failed to load assets",
+                    String(error)
+                );
                 setLoading(false);
             });
     }, []);
