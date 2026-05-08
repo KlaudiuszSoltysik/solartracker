@@ -17,8 +17,8 @@ spec:
       serviceAccountName: ai-agent-sa
       containers:
       - name: runner
-        image: myoung34/github-runner:ubuntu-jammy
-        imagePullPolicy: IfNotPresent
+        image: ghcr.io/klaudiuszsoltysik/ai-runner:latest 
+        imagePullPolicy: Always
         env:
         - name: REPO_URL
           value: "https://github.com/klaudiuszsoltysik/solartracker"

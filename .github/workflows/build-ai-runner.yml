@@ -1,0 +1,33 @@
+name: Build AI Runner
+
+on:
+  push:
+    branches: [ "master" ]
+    paths:
+      - 'dockerfiles/ai-runner/**'
+
+permissions:
+  packages: write
+  contents: read
+
+jobs:
+  build-ai-runner:
+    runs-on: ubuntu-latest 
+
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push ai-runner
+        uses: docker/build-push-action@v5
+        with:
+          context: ./dockerfiles/ai-runner
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/ai-runner:latest
