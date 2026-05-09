@@ -31,6 +31,9 @@ images:
 - name: backend-api
   newName: ghcr.io/klaudiuszsoltysik/solartracker/backend-api
   newTag: sha-506db63
+- name: downtime-checking
+  newName: ghcr.io/klaudiuszsoltysik/solartracker/downtime-checking
+  newTag: sha-506db63
 - name: esp32-simulator
   newName: ghcr.io/klaudiuszsoltysik/solartracker/esp32-simulator
   newTag: sha-506db63
