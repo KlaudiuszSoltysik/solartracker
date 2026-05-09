@@ -28,6 +28,9 @@ resources:
 - ghcr-secret.yml
 - namespaces.yml
 images:
+- name: backend-api
+  newName: ghcr.io/klaudiuszsoltysik/solartracker/backend-api
+  newTag: sha-506db63
 - name: esp32-simulator
   newName: ghcr.io/klaudiuszsoltysik/solartracker/esp32-simulator
   newTag: sha-506db63
