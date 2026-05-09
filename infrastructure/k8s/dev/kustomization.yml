@@ -1,61 +1,47 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
+
+
+
+
+
+
+
+
+
+  
+
+
+
 resources:
-  - ai-agent/github-runner.yml
-  - ai-agent/ollama.yml
-  - ai-agent/rbac.yml
-  - ai-agent/secret.yml
-
-  - backend-api/deployment.yml
-
-  - cloudflared/application.yml
-
-  - downtime-checking/cronjob.yml
-
-  - esp32-simulator/deployment.yml
-
-  - infrastructure-runner/application.yml
-  - infrastructure-runner/rbac.yml
-  - infrastructure-runner/secret.yml
-
-  - keycloak/application.yml
-  - keycloak/secret.yml
-
-  - mongodb/application.yml
-  - mongodb/secret.yml
-
-  - observability/loki-application.yml
-  - observability/prometheus-application.yml
-  - observability/secret.yml
-
-  - rabbitmq/application.yml
-  - rabbitmq/secret.yml
-  
-  - solar-forecast/cronjob.yml
-
-  - telemetry-processor/deployment.yml
-
-  - timescaledb/application.yml
-  - timescaledb/secret.yml
-
-  - ghcr-secret.yml
-  - namespaces.yml
-
-# images:
-#   - name: backend-api
-#     newName: ghcr.io/klaudiuszsoltysik/solartracker/backend-api
-#     newTag: master
-#   - name: telemetry-processor
-#     newName: ghcr.io/klaudiuszsoltysik/solartracker/telemetry-processor
-#     newTag: master
-#   - name: esp32-simulator
-#     newName: ghcr.io/klaudiuszsoltysik/solartracker/esp32-simulator
-#     newTag: master
-#   - name: solar-forecast
-#     newName: ghcr.io/klaudiuszsoltysik/solartracker/solar-forecast
-#     newTag: master
-#   - name: downtime-checking
-#     newName: ghcr.io/klaudiuszsoltysik/solartracker/downtime-checking
-#     newTag: master
-  
+- ai-agent/github-runner.yml
+- ai-agent/ollama.yml
+- ai-agent/rbac.yml
+- ai-agent/secret.yml
+- backend-api/deployment.yml
+- cloudflared/application.yml
+- downtime-checking/cronjob.yml
+- esp32-simulator/deployment.yml
+- infrastructure-runner/application.yml
+- infrastructure-runner/rbac.yml
+- infrastructure-runner/secret.yml
+- keycloak/application.yml
+- keycloak/secret.yml
+- mongodb/application.yml
+- mongodb/secret.yml
+- observability/loki-application.yml
+- observability/prometheus-application.yml
+- observability/secret.yml
+- rabbitmq/application.yml
+- rabbitmq/secret.yml
+- solar-forecast/cronjob.yml
+- telemetry-processor/deployment.yml
+- timescaledb/application.yml
+- timescaledb/secret.yml
+- ghcr-secret.yml
+- namespaces.yml
+images:
+- name: solar-forecast
+  newName: ghcr.io/klaudiuszsoltysik/solartracker/solar-forecast
+  newTag: sha-d662b9f
