@@ -28,6 +28,9 @@ resources:
 - ghcr-secret.yml
 - namespaces.yml
 images:
+- name: esp32-simulator
+  newName: ghcr.io/klaudiuszsoltysik/solartracker/esp32-simulator
+  newTag: sha-506db63
 - name: solar-forecast
   newName: ghcr.io/klaudiuszsoltysik/solartracker/solar-forecast
   newTag: sha-d662b9f
