@@ -51,21 +51,42 @@ def read_file_content(file_path):
 
 
 def call_ollama(prompt):
-    logger.info("Thinking...")
+    logger.info(f"Thinking... (Prompt length: {len(prompt)} characters)")
+    
     try:
         response = requests.post(GENERATE_URL, json={
             "model": MODEL,
             "prompt": prompt,
             "stream": False,
             "options": {
-                "temperature": 0.0,
-                "num_ctx": 2048
+                "temperature": 0.0
             }
         })
+        
+        if response.status_code != 200:
+            logger.error(f"Ollama API returned HTTP {response.status_code}")
+            logger.error(f"Response details: {response.text}")
+            return ""
+            
+        response_data = response.json()
+        generated_text = response_data.get("response", "")
+        
+        if not generated_text.strip():
+            logger.warning("Ollama processed the request successfully, but returned an empty string!")
+            logger.debug(f"Raw JSON payload: {response_data}")
+            
         logger.info("Done!")
-        return response.json().get("response", "")
+        return generated_text
+        
     except requests.exceptions.ConnectionError:
-        logger.error("Ollama server is not running.")
+        logger.error(f"ConnectionError: Ollama server is not reachable at {GENERATE_URL}")
+        return ""
+    except ValueError as json_err:
+        logger.error(f"Failed to parse JSON response: {json_err}")
+        logger.error(f"Raw response: {response.text}")
+        return ""
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {str(e)}")
         return ""
 
 
@@ -99,7 +120,7 @@ def generate_root_readme(scope_path):
 
 
 def generate_module_readme(scope_path, files):
-    logger.info(f"Generating MODULE README (reading {len(files)} files)")
+    logger.info(f"Generating {scope_path} README (reading {len(files)} files)")
     code_context = ""
     for file_path in files:
         content = read_file_content(file_path)

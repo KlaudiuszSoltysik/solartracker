@@ -1,9 +1,6 @@
 # 🗺️ SolarTracker: Rozwój Architektury
 
-- [ ] **GH Actions:** Poprawa budowania obrazów żeby budowało tylko jak coś się zmieni (+kustomize edit set image backend-api=ghcr.io/klaudiuszsoltysik/solartracker/backend-api:sha-1234567) i dodać Dockerfile dla infrastructure runnera żeby miał dockera i terraforma, oraz dla ai-agent runnera żeby miał pythona.
 - [ ] **VPN (OpenVPN):** Postawienie serwera VPN w klastrze. Podłączenie fizycznych układów ESP32 do prywatnej sieci K8s z ominięciem publicznego Wi-Fi, albo wystawienie rabbita na zewnątrz i zabezpieczenie go.
-- [ ] **Argo Events:** Nasłuchiwanie na webhooki (GitHub, Docker Registry) i eventy systemowe.
-- [ ] **Argo Workflows:** Uruchamianie zautomatyzowanych zadań (np. budowanie nowych obrazów Dockera, backup bazy, testy E2E) po wyzwoleniu przez Argo Events.
 - [ ] **Mobile App:** manual mode
 
 # Usefull commands:
