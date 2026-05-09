@@ -93,7 +93,7 @@ jobs:
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           
-          git add kustomization.yaml
+          git add kustomization.yml
           git commit -m "chore: update ${{ matrix.name }} image tag to sha-${GITHUB_SHA::7} [skip ci]"
           
           git pull --rebase origin master
