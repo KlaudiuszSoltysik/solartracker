@@ -30,7 +30,7 @@ resources:
 images:
 - name: backend-api
   newName: ghcr.io/klaudiuszsoltysik/solartracker/backend-api
-  newTag: sha-506db63
+  newTag: sha-32aaf0f
 - name: downtime-checking
   newName: ghcr.io/klaudiuszsoltysik/solartracker/downtime-checking
   newTag: sha-506db63
