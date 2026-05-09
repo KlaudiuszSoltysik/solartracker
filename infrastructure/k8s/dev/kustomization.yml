@@ -36,7 +36,7 @@ images:
   newTag: sha-506db63
 - name: solar-forecast
   newName: ghcr.io/klaudiuszsoltysik/solartracker/solar-forecast
-  newTag: sha-d662b9f
+  newTag: sha-506db63
 - name: telemetry-processor
   newName: ghcr.io/klaudiuszsoltysik/solartracker/telemetry-processor
   newTag: sha-506db63
