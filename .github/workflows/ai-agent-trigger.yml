@@ -45,9 +45,8 @@ jobs:
             
             MAX_RETRIES=3
             for ((i=1; i<=MAX_RETRIES; i++)); do
-              echo "Attempt $i to push changes..."
               
-              git pull --rebase origin master
+              git pull --rebase --autostash origin master
               
               if git push origin master; then
                 exit 0
