@@ -42,7 +42,19 @@ jobs:
             git config --local user.name "AI Agent"
             git add '**/README.md'
             git commit -m "docs: AI auto-update README [skip ci]"
-            git push
-          else
-            echo "No documentation changes detected."
+            
+            MAX_RETRIES=3
+            for ((i=1; i<=MAX_RETRIES; i++)); do
+              echo "Attempt $i to push changes..."
+              
+              git pull --rebase origin master
+              
+              if git push origin master; then
+                exit 0
+              else
+                sleep 5
+              fi
+            done
+            
+            exit 1
           fi
