@@ -5,6 +5,7 @@
 #include "sensor_manager.h"
 #include "metrics.h"
 #include "motor_controller.h"
+#include "yaw_controller.h"
 
 void setup()
 {
@@ -15,28 +16,35 @@ void setup()
   initSensors();
   initMetrics(METRICS_INTERVAL);
   initMotor();
+  moveMotorToHomePosition();
+  //calibrateGearRatio(800);
+  //calibrateFullHysteresis360(800);
 }
 
 void loop()
 {
+
+  handleMotor();
+  handleYawController();
+
   // Temporary simulation of metrics and sensors data collection. Replace with real data collection in the future.
-  if (isTimeToCollectMetrics())
-  {
+  // if (isTimeToCollectMetrics())
+  // {
 
-    Metrics actualMetrics = collectMetrics();
+  //   Metrics actualMetrics = collectMetrics();
 
-    Serial.printf("Device ID:     %s\n", actualMetrics.device_id.c_str());
-    Serial.printf("Free RAM:      %u bytes\n", actualMetrics.freeRam);
-    Serial.printf("Total RAM:     %u bytes\n", actualMetrics.totalRam);
-    Serial.printf("Work time:     %u s\n", actualMetrics.uptime);
-    Serial.printf("Last task time:%u ms\n", actualMetrics.lastTaskDuration);
-    Serial.printf("Timestamp:     %lu\n", actualMetrics.timestamp);
-    Serial.println("============================");
-  }
+  //   Serial.printf("Device ID:     %s\n", actualMetrics.device_id.c_str());
+  //   Serial.printf("Free RAM:      %u bytes\n", actualMetrics.freeRam);
+  //   Serial.printf("Total RAM:     %u bytes\n", actualMetrics.totalRam);
+  //   Serial.printf("Work time:     %u s\n", actualMetrics.uptime);
+  //   Serial.printf("Last task time:%u ms\n", actualMetrics.lastTaskDuration);
+  //   Serial.printf("Timestamp:     %lu\n", actualMetrics.timestamp);
+  //   Serial.println("============================");
+  // }
 
   if (isTimeToReadSensors())
   {
-    SensorData data = readAllSensors(true);
+    SensorData data = readAllSensors();
     Serial.printf("Voltage:       %.2f V\n", data.voltage);
     Serial.printf("Current:       %.2f mA\n", data.current);
     Serial.printf("Power:         %.2f mW\n", data.power);

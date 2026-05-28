@@ -35,10 +35,27 @@
 
 // Driver and motor parameters
 #define STEPS_PER_REV 200     // resolution of stepper motor
-#define MICROSTEPPING 8       // microstep parameter (define on stepper motor driver microswitches)
+#define MICROSTEPPING 4       // microstep parameter (define on stepper motor driver microswitches)
 #define MOTOR_MAX_SPEED 1000  // max speed (steps per sec)
 #define MOTOR_ACCEL 500       // acceleration
-#define GEAR_RATIO 5.0f       // gearbox ratio (number of motor revolutions needed for one full panel rotation)
+#define GEAR_RATIO 30.0f       // gearbox ratio (number of motor revolutions needed for one full panel rotation)
+
+// =================================================================
+// --- YAW CONTROLLER CONFIG ---
+// =================================================================
+#define YAW_CONTROL_INTERVAL 3000  // How often in ms we check the sun
+#define DEADBAND_LUX 80            // Hysteresis (dead zone)
+#define CLOUD_THRESHOLD_LUX 200    // Cloudiness threshold
+#define STEP_ANGLE 0.5f            // Correction step (in degrees)
+#define MIN_MOVEMENT_ANGLE 0.5f    // Minimum movement angle (in degrees)
+// Zero point for calibration (e.g. left limit is East = -90 deg.)
+#define HOME_POSITION_ANGLE -90.0f
+
+// =================================================================
+// --- GPS LOCATION (For astronomical calculations) ---
+// =================================================================
+#define LATITUDE 52.44   // Geographic latitude 
+#define LONGITUDE 16.60  // Geographic longitude
 
 // =================================================================
 // --- SYSTEM AND NETWORK PARAMETERS ---

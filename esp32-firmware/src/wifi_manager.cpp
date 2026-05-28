@@ -2,13 +2,15 @@
 #include "wifi_manager.h"
 #include "config.h"
 
-void setupWifi() {
+void setupWifi()
+{
     Serial.print("Connecting To Wi-Fi: ");
     Serial.println(WIFI_SSID);
 
     WiFi.begin(WIFI_SSID, WIFI_PASS);
 
-    while (WiFi.status() != WL_CONNECTED) {
+    while (WiFi.status() != WL_CONNECTED)
+    {
         delay(500);
         Serial.print(".");
     }

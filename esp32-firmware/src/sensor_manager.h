@@ -3,10 +3,12 @@
 
 #include <Adafruit_INA219.h>
 #include <Adafruit_TSL2591.h>
+#include <Adafruit_BMP280.h>
 #include <DHT.h>
 #include <Wire.h>
-    
-struct SensorData {
+
+struct SensorData
+{
     float voltage;     // V
     float current;     // mA
     float power;       // mW
