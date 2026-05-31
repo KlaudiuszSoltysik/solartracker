@@ -18,6 +18,18 @@ bool moveMotorToHomePosition();
 // Actual position of the panel (for API)
 float getCurrentPanelAngle();
 
+struct YawRange
+{
+    long minSteps;
+    long maxSteps;
+    float minAngle;
+    float maxAngle;
+    float rangeAngle;
+};
+
+// Calibrate yaw range by moving from left limit switch to right limit switch
+YawRange calibrateYawRange();
+
 // Calibration of hysteresis (4 points mapping)
 void calibrateFullHysteresis360(uint32_t stepsPerRevolutionOfMotor);
 

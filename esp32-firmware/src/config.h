@@ -39,6 +39,8 @@
 #define MOTOR_MAX_SPEED 1000  // max speed (steps per sec)
 #define MOTOR_ACCEL 500       // acceleration
 #define GEAR_RATIO 30.0f       // gearbox ratio (number of motor revolutions needed for one full panel rotation)
+#define DEFAULT_MIN_YAW_ANGLE -90.0f
+#define DEFAULT_MAX_YAW_ANGLE 62.0f
 
 // =================================================================
 // --- YAW CONTROLLER CONFIG ---

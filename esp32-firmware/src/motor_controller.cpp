@@ -42,9 +42,24 @@ void handleMotor()
         stepper.stop();
         Serial.println("Right limit switch active!");
     }
+if (stepper.distanceToGo() != 0)
+    {
+        if (digitalRead(PIN_MOTOR_ENA) == HIGH) 
+        {
+            digitalWrite(PIN_MOTOR_ENA, LOW);
+            delay(10); // Short delay to ensure the motor driver is enabled before stepping
+        }
+    }
 
     // 2. Step the motor (if needed)
     stepper.run();
+
+    // EcoMODE: If we have reached the target position, we can disable the coils to save energy and reduce heat
+    if (stepper.distanceToGo() == 0 && digitalRead(PIN_MOTOR_ENA) == LOW)
+    {
+        digitalWrite(PIN_MOTOR_ENA, HIGH); 
+        Serial.println("[MOTOR] Cel osiągnięty. Cewki odłączone (Eco Mode).");
+    }
 }
 
 void moveMotorByAngle(float angle)
@@ -74,6 +89,12 @@ void stopMotor()
 
 bool moveMotorToHomePosition()
 {
+
+     Serial.println("[MOTOR] Homing start. Enabling motor...");
+    digitalWrite(PIN_MOTOR_ENA, LOW);
+    delay(10);
+
+
     // Move in one direction until the limit switch is triggered
     // Assuming home position is at the left limit switch
     while (digitalRead(PIN_LIMIT_LEFT) == HIGH)
@@ -96,6 +117,7 @@ bool moveMotorToHomePosition()
         stepper.run();
         yield();
     }
+    digitalWrite(PIN_MOTOR_ENA, HIGH);
     Serial.println("[MOTOR] Moved to home position.");
     return true; // Indicate successful homing
 }
@@ -111,9 +133,64 @@ float getCurrentPanelAngle()
     return currentAngle;
 }
 
+YawRange calibrateYawRange()
+{
+    Serial.println("\n=== YAW RANGE CALIBRATION START ===");
+    Serial.println("[YAW-CAL] Moving to left limit switch...");
+    digitalWrite(PIN_MOTOR_ENA, LOW);
+    delay(10);
+
+    while (digitalRead(PIN_LIMIT_LEFT) == HIGH)
+    {
+        stepper.setSpeed(-MOTOR_MAX_SPEED / 4);
+        stepper.runSpeed();
+        yield();
+    }
+
+    stepper.stop();
+    stepper.setCurrentPosition(0);
+
+    Serial.println("[YAW-CAL] Left limit reached. Position set to 0 steps.");
+    delay(1000);
+
+    Serial.println("[YAW-CAL] Moving to right limit switch...");
+
+    while (digitalRead(PIN_LIMIT_RIGHT) == HIGH)
+    {
+        stepper.setSpeed(MOTOR_MAX_SPEED / 4);
+        stepper.runSpeed();
+        yield();
+    }
+
+    stepper.stop();
+    digitalWrite(PIN_MOTOR_ENA, HIGH);
+    long maxSteps = stepper.currentPosition();
+    float totalStepsForPanelRev = STEPS_PER_REV * MICROSTEPPING * GEAR_RATIO;
+    float rangeAngle = ((float)maxSteps / totalStepsForPanelRev) * 360.0f;
+
+    YawRange range;
+    range.minSteps = 0;
+    range.maxSteps = maxSteps;
+    range.minAngle = HOME_POSITION_ANGLE;
+    range.maxAngle = HOME_POSITION_ANGLE + rangeAngle;
+    range.rangeAngle = rangeAngle;
+
+    Serial.println("\n=== YAW RANGE CALIBRATION RESULT ===");
+    Serial.printf("Min steps   : %ld\n", range.minSteps);
+    Serial.printf("Max steps   : %ld\n", range.maxSteps);
+    Serial.printf("Min angle   : %.2f deg\n", range.minAngle);
+    Serial.printf("Max angle   : %.2f deg\n", range.maxAngle);
+    Serial.printf("Range angle : %.2f deg\n", range.rangeAngle);
+    Serial.println("====================================\n");
+
+    return range;
+}
+
 void calibrateFullHysteresis360(uint32_t stepsPerRevolutionOfMotor)
 {
     Serial.println("\n=== Hysteresis mapping start ===");
+    digitalWrite(PIN_MOTOR_ENA, LOW);
+    delay(10);
 
     // P1 - left trigger edge
     while (digitalRead(PIN_LIMIT_LEFT) == HIGH) {
@@ -220,7 +297,7 @@ void calibrateFullHysteresis360(uint32_t stepsPerRevolutionOfMotor)
         stepper.run();
         yield();
     }
-
+    digitalWrite(PIN_MOTOR_ENA, HIGH);
     int32_t P2_next = stepper.currentPosition();
 
     float finalCenter = (float)(P1_next + P2_next) / 2.0f;

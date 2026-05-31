@@ -16,6 +16,7 @@ void setup()
   initSensors();
   initMetrics(METRICS_INTERVAL);
   initMotor();
+  calibrateYawRange();
   moveMotorToHomePosition();
   //calibrateGearRatio(800);
   //calibrateFullHysteresis360(800);

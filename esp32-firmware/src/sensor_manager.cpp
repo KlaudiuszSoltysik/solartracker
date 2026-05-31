@@ -12,6 +12,9 @@ Adafruit_TSL2591 tslLeft = Adafruit_TSL2591(1);  // ID 1
 Adafruit_TSL2591 tslRight = Adafruit_TSL2591(2); // ID 2
 Adafruit_BMP280 bmp; // I2C default address 0x76
 
+bool tslLeftReady = false;
+bool tslRightReady = false;
+
 // DHT dht(PIN_DHT_DATA, DHT22);
 
 Ticker sensorsTimer;
@@ -50,6 +53,7 @@ void initSensors()
 
     if (tslLeft.begin(&I2C_0))
     {
+        tslLeftReady = true;
         tslLeft.setGain(TSL2591_GAIN_MED);
         tslLeft.setTiming(TSL2591_INTEGRATIONTIME_100MS);
     }
@@ -65,6 +69,7 @@ void initSensors()
 
     if (tslRight.begin(&I2C_1))
     {
+        tslRightReady = true;
         tslRight.setGain(TSL2591_GAIN_MED);
         tslRight.setTiming(TSL2591_INTEGRATIONTIME_100MS);
     }
@@ -106,10 +111,20 @@ SensorData readAllSensors(bool useSimulation)
 
         data.temperature = bmp.readTemperature();
 
-        uint32_t lumL = tslLeft.getFullLuminosity();
-        uint32_t lumR = tslRight.getFullLuminosity();
-        data.luxLeft = tslLeft.calculateLux(lumL & 0xFFFF, lumL >> 16);
-        data.luxRight = tslRight.calculateLux(lumR & 0xFFFF, lumR >> 16);
+        data.luxLeft = 0;
+        data.luxRight = 0;
+
+        if (tslLeftReady)
+        {
+            uint32_t lumL = tslLeft.getFullLuminosity();
+            data.luxLeft = tslLeft.calculateLux(lumL & 0xFFFF, lumL >> 16);
+        }
+
+        if (tslRightReady)
+        {
+            uint32_t lumR = tslRight.getFullLuminosity();
+            data.luxRight = tslRight.calculateLux(lumR & 0xFFFF, lumR >> 16);
+        }
     }
 
     return data;
