@@ -9,9 +9,13 @@
 unsigned long lastYawCheck = 0;
 TrackingMode currentMode = MODE_HYBRID;
 float targetManualAngle = 0.0f;
+float minYawAngle = DEFAULT_MIN_YAW_ANGLE;
+float maxYawAngle = DEFAULT_MAX_YAW_ANGLE;
 
 void moveToAbsoluteAngle(float targetAngle)
 {
+    targetAngle = constrain(targetAngle, minYawAngle, maxYawAngle);
+
     float currentPanelAngle = getCurrentPanelAngle();
     float angleDiff = targetAngle - currentPanelAngle;
 
@@ -36,7 +40,7 @@ void executeSensorLogic(SensorData data)
         {
             correction = STEP_ANGLE; // If condition is NOT met
         }
-        moveMotorByAngle(correction);
+        moveToAbsoluteAngle(getCurrentPanelAngle() + correction);
         Serial.printf("[YAW-SENSOR] Correction: %.1f deg (Lux difference: %d)\n", correction, diff);
     }
     else
@@ -62,6 +66,12 @@ float calculateLocalAstroAngle()
 
     calcHorizontalCoordinates(now_utc, LATITUDE, LONGITUDE, azimuth, elevation);
 
+    if (elevation <= 0.0)
+    {
+        Serial.printf("[ASTRO] Sun below horizon. Elevation: %.2f deg. Holding position.\n", elevation);
+        return -10.0f; // Hold current position if sun is below horizon
+    }
+
     // Convert azimuth to motor angle (assuming 0 deg = South, positive clockwise)
     float motorTargetAngle = (float)azimuth - 180.0f;
 
@@ -76,6 +86,9 @@ void handleYawController()
     if (millis() - lastYawCheck < YAW_CONTROL_INTERVAL)
         return;
     lastYawCheck = millis();
+
+    if (isMotorMoving())
+        return;
 
     SensorData data = readAllSensors();
 
@@ -114,4 +127,10 @@ void setTrackingMode(TrackingMode newMode)
     Serial.printf("[YAW] Switching mode to: %d\n", newMode);
 }
 void setManualTargetAngle(float angle) { targetManualAngle = angle; }
+void setYawAngleLimits(float minAngle, float maxAngle)
+{
+    minYawAngle = minAngle;
+    maxYawAngle = maxAngle;
+    Serial.printf("[YAW] Angle limits set: %.2f deg to %.2f deg\n", minYawAngle, maxYawAngle);
+}
 float getCurrentYawAngle() { return getCurrentPanelAngle(); }

@@ -328,5 +328,5 @@ void calibrateFullHysteresis360(uint32_t stepsPerRevolutionOfMotor)
 
 bool isMotorMoving()
 {
-    return stepper.isRunning();
+    return stepper.distanceToGo() != 0;
 }

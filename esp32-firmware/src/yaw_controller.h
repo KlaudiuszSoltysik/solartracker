@@ -16,11 +16,11 @@ void handleYawController();
 // Change the current operating mode
 void setTrackingMode(TrackingMode newMode);
 
-// Set the target angle from astronomical calculations
-void setAstroTargetAngle(float angle);
-
 // Set the target angle from the app slider
 void setManualTargetAngle(float angle);
+
+// Set calibrated yaw movement range
+void setYawAngleLimits(float minAngle, float maxAngle);
 
 // Get the current physical angle of the panel
 float getCurrentYawAngle();

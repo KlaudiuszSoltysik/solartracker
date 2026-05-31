@@ -16,7 +16,8 @@ void setup()
   initSensors();
   initMetrics(METRICS_INTERVAL);
   initMotor();
-  calibrateYawRange();
+  //YawRange yawRange = calibrateYawRange();
+  //setYawAngleLimits(yawRange.minAngle, yawRange.maxAngle);
   moveMotorToHomePosition();
   //calibrateGearRatio(800);
   //calibrateFullHysteresis360(800);
