@@ -18,6 +18,12 @@ bool moveMotorToHomePosition();
 // Actual position of the panel (for API)
 float getCurrentPanelAngle();
 
+// Current position reliability state
+bool isPanelHomed();
+bool hasMotorFault();
+void clearMotorFault();
+void setMotorAngleLimits(float minAngle, float maxAngle);
+
 struct YawRange
 {
     long minSteps;

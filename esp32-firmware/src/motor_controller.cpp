@@ -6,6 +6,25 @@
 // Initialize object of motor (type: DRIVER for TB6600: STEP + DIR)
 AccelStepper stepper(AccelStepper::DRIVER, PIN_MOTOR_STEP, PIN_MOTOR_DIR);
 
+bool panelHomed = false;
+bool motorFault = false;
+float motorMinYawAngle = DEFAULT_MIN_YAW_ANGLE;
+float motorMaxYawAngle = DEFAULT_MAX_YAW_ANGLE;
+
+float calculatePanelAngleFromCurrentPosition()
+{
+    float totalStepsForPanelRev = STEPS_PER_REV * MICROSTEPPING * GEAR_RATIO;
+    return HOME_POSITION_ANGLE + (((float)stepper.currentPosition() * MOTOR_DIRECTION_SIGN) / totalStepsForPanelRev) * 360.0f;
+}
+
+void setMotorFault(const char *message)
+{
+    motorFault = true;
+    panelHomed = false;
+    stepper.stop();
+    Serial.printf("[MOTOR-FAULT] %s\n", message);
+}
+
 void initMotor()
 {
     // Config ENABLE PIN
@@ -30,14 +49,40 @@ void handleMotor()
     bool isLeftLimitHit = (digitalRead(PIN_LIMIT_LEFT) == LOW);
     bool isRightLimitHit = (digitalRead(PIN_LIMIT_RIGHT) == LOW);
 
-    // If we're moving in one direction and hit the limit switch -> STOP
-    // (distanceToGo < 0 means movement in one direction, > 0 in the other)
-    if (isLeftLimitHit && stepper.distanceToGo() < 0)
+    if (isLeftLimitHit && isRightLimitHit)
+    {
+        setMotorFault("Both limit switches are active.");
+        return;
+    }
+
+    if (panelHomed)
+    {
+        float currentAngle = calculatePanelAngleFromCurrentPosition();
+
+        if (isLeftLimitHit && abs(currentAngle - motorMinYawAngle) > LIMIT_SWITCH_ANGLE_TOLERANCE)
+        {
+            setMotorFault("Left limit switch active outside expected angle range.");
+            return;
+        }
+
+        if (isRightLimitHit && abs(currentAngle - motorMaxYawAngle) > LIMIT_SWITCH_ANGLE_TOLERANCE)
+        {
+            setMotorFault("Right limit switch active outside expected angle range.");
+            return;
+        }
+    }
+
+    long distanceToGo = stepper.distanceToGo();
+    bool isMovingTowardLeftLimit = (HOME_DIRECTION_SIGN > 0) ? (distanceToGo > 0) : (distanceToGo < 0);
+    bool isMovingTowardRightLimit = (HOME_DIRECTION_SIGN > 0) ? (distanceToGo < 0) : (distanceToGo > 0);
+
+    // If we're moving toward an active limit switch -> STOP.
+    if (isLeftLimitHit && isMovingTowardLeftLimit)
     {
         stepper.stop();
         Serial.println("Left limit switch active!");
     }
-    else if (isRightLimitHit && stepper.distanceToGo() > 0)
+    else if (isRightLimitHit && isMovingTowardRightLimit)
     {
         stepper.stop();
         Serial.println("Right limit switch active!");
@@ -64,6 +109,18 @@ if (stepper.distanceToGo() != 0)
 
 void moveMotorByAngle(float angle)
 {
+    if (motorFault)
+    {
+        Serial.println("[MOTOR] Move rejected: motor fault is active.");
+        return;
+    }
+
+    if (!panelHomed)
+    {
+        Serial.println("[MOTOR] Move rejected: panel is not homed.");
+        return;
+    }
+
     // 1. Calculate total motor steps for one full rotation (360 degrees) of the panel
     // Motor steps * microstepping * gearbox ratio
     float totalStepsForPanelRev = STEPS_PER_REV * MICROSTEPPING * GEAR_RATIO;
@@ -72,7 +129,7 @@ void moveMotorByAngle(float angle)
     float stepsPerDegree = totalStepsForPanelRev / 360.0f;
 
     // 3. Calculate target step count for the requested angle
-    long stepsToMove = angle * stepsPerDegree;
+    long stepsToMove = angle * stepsPerDegree * MOTOR_DIRECTION_SIGN;
 
     // Command the movement to AccelStepper
     stepper.move(stepsToMove);
@@ -84,6 +141,8 @@ void moveMotorByAngle(float angle)
 void stopMotor()
 {
     stepper.stop();
+    panelHomed = false;
+    motorFault = true;
     Serial.println("[MOTOR] Emergency stop!");
 }
 
@@ -99,7 +158,7 @@ bool moveMotorToHomePosition()
     // Assuming home position is at the left limit switch
     while (digitalRead(PIN_LIMIT_LEFT) == HIGH)
     {                                           // While not at home position
-        stepper.setSpeed(-MOTOR_MAX_SPEED / 4); // Move at quarter speed towards home
+        stepper.setSpeed(HOME_DIRECTION_SIGN * MOTOR_MAX_SPEED / 4); // Move at quarter speed towards home
         stepper.runSpeed();
         yield();
     }
@@ -110,6 +169,8 @@ bool moveMotorToHomePosition()
     vTaskDelay(1000);
     // Reset the current position to zero after homing
     stepper.setCurrentPosition(0);
+    panelHomed = true;
+    motorFault = false;
     // Move to a safe position after homing to avoid hitting the switch again
     moveMotorByAngle(7.2f); // Move 7.2 degrees away from home position
     while (stepper.distanceToGo() != 0)
@@ -124,13 +185,7 @@ bool moveMotorToHomePosition()
 
 float getCurrentPanelAngle()
 {
-    // Calculate total motor steps for one full rotation (360 degrees) of the panel
-    float totalStepsForPanelRev = STEPS_PER_REV * MICROSTEPPING * GEAR_RATIO;
-
-    // Calculate current angle based on AccelStepper position and configured home angle.
-    float currentAngle = HOME_POSITION_ANGLE + ((float)stepper.currentPosition() / totalStepsForPanelRev) * 360.0f;
-
-    return currentAngle;
+    return calculatePanelAngleFromCurrentPosition();
 }
 
 YawRange calibrateYawRange()
@@ -142,13 +197,15 @@ YawRange calibrateYawRange()
 
     while (digitalRead(PIN_LIMIT_LEFT) == HIGH)
     {
-        stepper.setSpeed(-MOTOR_MAX_SPEED / 4);
+        stepper.setSpeed(HOME_DIRECTION_SIGN * MOTOR_MAX_SPEED / 4);
         stepper.runSpeed();
         yield();
     }
 
     stepper.stop();
     stepper.setCurrentPosition(0);
+    panelHomed = true;
+    motorFault = false;
 
     Serial.println("[YAW-CAL] Left limit reached. Position set to 0 steps.");
     delay(1000);
@@ -157,14 +214,14 @@ YawRange calibrateYawRange()
 
     while (digitalRead(PIN_LIMIT_RIGHT) == HIGH)
     {
-        stepper.setSpeed(MOTOR_MAX_SPEED / 4);
+        stepper.setSpeed(-HOME_DIRECTION_SIGN * MOTOR_MAX_SPEED / 4);
         stepper.runSpeed();
         yield();
     }
 
     stepper.stop();
     digitalWrite(PIN_MOTOR_ENA, HIGH);
-    long maxSteps = stepper.currentPosition();
+    long maxSteps = abs(stepper.currentPosition());
     float totalStepsForPanelRev = STEPS_PER_REV * MICROSTEPPING * GEAR_RATIO;
     float rangeAngle = ((float)maxSteps / totalStepsForPanelRev) * 360.0f;
 
@@ -184,6 +241,27 @@ YawRange calibrateYawRange()
     Serial.println("====================================\n");
 
     return range;
+}
+
+bool isPanelHomed()
+{
+    return panelHomed;
+}
+
+bool hasMotorFault()
+{
+    return motorFault;
+}
+
+void clearMotorFault()
+{
+    motorFault = false;
+}
+
+void setMotorAngleLimits(float minAngle, float maxAngle)
+{
+    motorMinYawAngle = minAngle;
+    motorMaxYawAngle = maxAngle;
 }
 
 void calibrateFullHysteresis360(uint32_t stepsPerRevolutionOfMotor)

@@ -14,12 +14,24 @@ float maxYawAngle = DEFAULT_MAX_YAW_ANGLE;
 
 void moveToAbsoluteAngle(float targetAngle)
 {
+    if (!isPanelHomed() || hasMotorFault())
+    {
+        Serial.println("[YAW] Movement rejected: panel is not homed or motor fault is active.");
+        return;
+    }
+
+    if (targetAngle < minYawAngle || targetAngle > maxYawAngle)
+    {
+        Serial.printf("[YAW-LIMIT] Target %.2f deg outside logical range %.2f..%.2f deg. Constraining.\n",
+                      targetAngle, minYawAngle, maxYawAngle);
+    }
+
     targetAngle = constrain(targetAngle, minYawAngle, maxYawAngle);
 
     float currentPanelAngle = getCurrentPanelAngle();
     float angleDiff = targetAngle - currentPanelAngle;
 
-    if (abs(angleDiff) > MIN_MOVEMENT_ANGLE)
+    if (abs(angleDiff) >= MIN_MOVEMENT_ANGLE)
     {
         moveMotorByAngle(angleDiff);
     }
@@ -68,12 +80,12 @@ float calculateLocalAstroAngle()
 
     if (elevation <= 0.0)
     {
-        Serial.printf("[ASTRO] Sun below horizon. Elevation: %.2f deg. Holding position.\n", elevation);
-        return -10.0f; // Hold current position if sun is below horizon
+        Serial.printf("[ASTRO] Sun below horizon. Elevation: %.2f deg. Moving to east limit.\n", elevation);
+        return minYawAngle;
     }
 
-    // Convert azimuth to motor angle (assuming 0 deg = South, positive clockwise)
-    float motorTargetAngle = (float)azimuth - 180.0f;
+    // Use compass azimuth directly: 180 deg means the panel points straight ahead.
+    float motorTargetAngle = (float)azimuth;
 
     Serial.printf("[ASTRO] Time: %lu | Azimuth: %.2f deg | Elevation: %.2f deg | Motor target: %.2f deg\n",
                   now_utc, azimuth, elevation, motorTargetAngle);
@@ -88,6 +100,9 @@ void handleYawController()
     lastYawCheck = millis();
 
     if (isMotorMoving())
+        return;
+
+    if (!isPanelHomed() || hasMotorFault())
         return;
 
     SensorData data = readAllSensors();
@@ -131,6 +146,7 @@ void setYawAngleLimits(float minAngle, float maxAngle)
 {
     minYawAngle = minAngle;
     maxYawAngle = maxAngle;
+    setMotorAngleLimits(minAngle, maxAngle);
     Serial.printf("[YAW] Angle limits set: %.2f deg to %.2f deg\n", minYawAngle, maxYawAngle);
 }
 float getCurrentYawAngle() { return getCurrentPanelAngle(); }

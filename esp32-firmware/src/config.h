@@ -38,8 +38,11 @@
 #define MOTOR_MAX_SPEED 1000  // max speed (steps per sec)
 #define MOTOR_ACCEL 500       // acceleration
 #define GEAR_RATIO 30.0f       // gearbox ratio (number of motor revolutions needed for one full panel rotation)
-#define DEFAULT_MIN_YAW_ANGLE -90.0f
-#define DEFAULT_MAX_YAW_ANGLE 62.0f
+#define MOTOR_DIRECTION_SIGN -1 // motor direction correction relative to panel angle
+#define HOME_DIRECTION_SIGN 1   // motor direction used to reach the physical left home limit
+#define DEFAULT_MIN_YAW_ANGLE 105.0f
+#define DEFAULT_MAX_YAW_ANGLE 255.0f
+#define PARK_POSITION_ANGLE 180.0f
 
 // =================================================================
 // --- YAW CONTROLLER CONFIG ---
@@ -49,8 +52,9 @@
 #define CLOUD_THRESHOLD_LUX 200    // Cloudiness threshold
 #define STEP_ANGLE 0.5f            // Correction step (in degrees)
 #define MIN_MOVEMENT_ANGLE 0.5f    // Minimum movement angle (in degrees)
-// Zero point for calibration (e.g. left limit is East = -90 deg.)
-#define HOME_POSITION_ANGLE -90.0f
+#define LIMIT_SWITCH_ANGLE_TOLERANCE 6.0f // Max allowed angle error when a limit switch is active
+// Physical left limit angle. Panel points straight ahead at 180 deg.
+#define HOME_POSITION_ANGLE 105.0f
 
 // =================================================================
 // --- GPS LOCATION (For astronomical calculations) ---
@@ -63,7 +67,7 @@
 // =================================================================
 #define METRICS_INTERVAL 10.0f // metrics sending frequency
 #define TELEMETRY_INTERVAL 5000 // data sending frequency (milliseconds)
-#define SENSORS_READ_INTERVAL 2.0f // sensors reading frequency (seconds)
+#define SENSORS_READ_INTERVAL 10.0f // sensors reading frequency (seconds)
 #define WIFI_SSID "GooglePixel"
 #define WIFI_PASS "12345678"
 
