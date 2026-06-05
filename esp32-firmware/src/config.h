@@ -76,4 +76,15 @@
 #define NTP_SERVER_2 "time.nist.gov"
 #define TIME_ZONE "CET-1CEST,M3.5.0,M10.5.0/3"
 
+// MQTT config
+#define DEVICE_ID "ESP_test"
+#define MQTT_BROKER "test.mosquitto.org"
+#define MQTT_PORT 1883
+#define MQTT_USER ""
+#define MQTT_PASS ""
+#define MQTT_RECONNECT_INTERVAL 5000
+#define MQTT_TELEMETRY_TOPIC_PREFIX "telemetry/device/"
+#define MQTT_COMMAND_TOPIC_PREFIX "controls/device/"
+#define LUX_TO_IRRADIANCE_DIVISOR 125.0f
+
 #endif // CONFIG_H

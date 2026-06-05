@@ -5,7 +5,10 @@
 #include "sensor_manager.h"
 #include "metrics.h"
 #include "motor_controller.h"
+#include "mqtt_manager.h"
 #include "yaw_controller.h"
+
+unsigned long lastTelemetrySentAt = 0;
 
 void setup()
 {
@@ -19,6 +22,7 @@ void setup()
   YawRange yawRange = calibrateYawRange();
   setYawAngleLimits(yawRange.minAngle, yawRange.maxAngle);
   moveMotorByAngle(PARK_POSITION_ANGLE - getCurrentPanelAngle());
+  initMqtt();
   //moveMotorToHomePosition();
   //calibrateGearRatio(800);
   //calibrateFullHysteresis360(800);
@@ -29,6 +33,7 @@ void loop()
 
   handleMotor();
   handleYawController();
+  handleMqtt();
 
   // Temporary simulation of metrics and sensors data collection. Replace with real data collection in the future.
   // if (isTimeToCollectMetrics())
@@ -56,5 +61,12 @@ void loop()
     Serial.printf("Lux (Left):    %lu lux\n", data.luxLeft);
     Serial.printf("Lux (Right):   %lu lux\n", data.luxRight);
     Serial.println("============================");
+  }
+
+  if (!isMotorMoving() && millis() - lastTelemetrySentAt >= TELEMETRY_INTERVAL)
+  {
+    lastTelemetrySentAt = millis();
+    SensorData data = readAllSensors();
+    publishTelemetry(data);
   }
 }
