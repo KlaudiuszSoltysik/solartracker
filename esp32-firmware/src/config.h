@@ -24,7 +24,6 @@
 // =================================================================
 #define PIN_LIMIT_LEFT 25     // left limit switch
 #define PIN_LIMIT_RIGHT 26     // right limit switch
-#define PIN_DHT_DATA   32     // DHT22 (one-wire)
 
 // =================================================================
 // --- STEPPER MOTOR CONFIG (TB6600) ---

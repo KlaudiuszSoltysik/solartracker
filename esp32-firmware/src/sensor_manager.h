@@ -4,7 +4,6 @@
 #include <Adafruit_INA219.h>
 #include <Adafruit_TSL2591.h>
 #include <Adafruit_BMP280.h>
-#include <DHT.h>
 #include <Wire.h>
 
 struct SensorData
@@ -13,7 +12,6 @@ struct SensorData
     float current;     // mA
     float power;       // mW
     float temperature; // C
-    float humidity;    // %
     uint16_t luxLeft;  // lx
     uint16_t luxRight; // lx
 };

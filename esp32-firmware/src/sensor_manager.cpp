@@ -15,8 +15,6 @@ Adafruit_BMP280 bmp; // I2C default address 0x76
 bool tslLeftReady = false;
 bool tslRightReady = false;
 
-// DHT dht(PIN_DHT_DATA, DHT22);
-
 Ticker sensorsTimer;
 volatile bool _sensorsFlag = false;
 
@@ -78,7 +76,6 @@ void initSensors()
         Serial.println("Right TSL2591 not found");
     }
 
-    // dht.begin();
     sensorsTimer.attach(SENSORS_READ_INTERVAL, onSensorsTimerTick);
     Serial.println("--- Sensors initialization finished ---");
 }
@@ -94,7 +91,6 @@ SensorData readAllSensors(bool useSimulation)
         data.current = 2.0 + (rand() % 11) / 10.0;       // 2.0 - 3.0mA
         data.power = 25.0 + (rand() % 101) / 10.0;       // 25.0 - 35.0mW
         // data.temperature = 20.0 + (rand() % 121) / 10.0; // 20.0 - 32.0°C
-        // data.humidity = 40.0 + (rand() % 41);            // 40.0 - 81.0%
         data.temperature = bmp.readTemperature();
         data.luxLeft = 450.0 + (rand() % 101);           // 450 - 550 lux
         data.luxRight = 430.0 + (rand() % 101);          // 430 - 530 lux
@@ -105,9 +101,6 @@ SensorData readAllSensors(bool useSimulation)
         data.voltage = ina219.getBusVoltage_V();
         data.current = ina219.getCurrent_mA();
         data.power = ina219.getPower_mW();
-
-    //    data.temperature = dht.readTemperature();
-    //    data.humidity = dht.readHumidity();
 
         data.temperature = bmp.readTemperature();
 
