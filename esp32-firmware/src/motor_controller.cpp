@@ -264,6 +264,20 @@ void setMotorAngleLimits(float minAngle, float maxAngle)
     motorMaxYawAngle = maxAngle;
 }
 
+const char *getMotorStatus()
+{
+    if (motorFault)
+        return "MOTOR_FAULT";
+
+    if (!panelHomed)
+        return "NOT_HOMED";
+
+    if (isMotorMoving())
+        return "MOVING";
+
+    return "OK";
+}
+
 void calibrateFullHysteresis360(uint32_t stepsPerRevolutionOfMotor)
 {
     Serial.println("\n=== Hysteresis mapping start ===");

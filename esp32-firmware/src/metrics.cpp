@@ -2,6 +2,7 @@
 #include <Ticker.h>
 #include "metrics.h"
 #include <time_manager.h>
+#include "motor_controller.h"
 
 Ticker metricsTimer;
 volatile bool _metricsFlag = false;
@@ -32,6 +33,7 @@ Metrics collectMetrics()
     data.uptime = millis() / 1000;
     data.lastTaskDuration = random(2, 10);
     data.timestamp = getUnixTime();
+    data.status = getMotorStatus();
 
     return data;
 }

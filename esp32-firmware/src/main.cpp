@@ -42,6 +42,7 @@ void loop()
   //   Serial.printf("Work time:     %u s\n", actualMetrics.uptime);
   //   Serial.printf("Last task time:%u ms\n", actualMetrics.lastTaskDuration);
   //   Serial.printf("Timestamp:     %lu\n", actualMetrics.timestamp);
+  //   Serial.printf("Status:        %s\n", actualMetrics.status.c_str());
   //   Serial.println("============================");
   // }
 

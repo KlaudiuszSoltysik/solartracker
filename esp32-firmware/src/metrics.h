@@ -7,6 +7,7 @@ struct Metrics {
     uint32_t uptime;
     uint32_t lastTaskDuration;
     time_t timestamp;
+    String status;
 };
 
 // Initialize collecting of metrics

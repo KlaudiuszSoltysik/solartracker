@@ -23,6 +23,7 @@ bool isPanelHomed();
 bool hasMotorFault();
 void clearMotorFault();
 void setMotorAngleLimits(float minAngle, float maxAngle);
+const char *getMotorStatus();
 
 struct YawRange
 {
