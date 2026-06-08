@@ -37,7 +37,7 @@ images:
   newTag: sha-506db63
 - name: esp32-simulator
   newName: ghcr.io/klaudiuszsoltysik/solartracker/esp32-simulator
-  newTag: sha-32aaf0f
+  newTag: sha-bf10eb0
 - name: solar-forecast
   newName: ghcr.io/klaudiuszsoltysik/solartracker/solar-forecast
   newTag: sha-32aaf0f
