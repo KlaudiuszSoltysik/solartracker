@@ -43,4 +43,4 @@ images:
   newTag: sha-32aaf0f
 - name: telemetry-processor
   newName: ghcr.io/klaudiuszsoltysik/solartracker/telemetry-processor
-  newTag: sha-32aaf0f
+  newTag: sha-bf10eb0
