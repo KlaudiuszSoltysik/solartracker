@@ -33,6 +33,7 @@ spec:
         ports:
         - containerPort: 5672
         - containerPort: 1883
+        - containerPort: 15675
         volumeMounts:
         - name: rabbit-data
           mountPath: /var/lib/rabbitmq
@@ -70,6 +71,9 @@ spec:
   - name: mqtt
     port: 1883
     targetPort: 1883
+  - name: mqtt-ws
+    port: 15675
+    targetPort: 15675
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -78,4 +82,4 @@ metadata:
   namespace: default
 data:
   enabled_plugins: |
-    [rabbitmq_management,rabbitmq_mqtt,rabbitmq_prometheus].
+    [rabbitmq_management,rabbitmq_mqtt,rabbitmq_web_mqtt,rabbitmq_prometheus].

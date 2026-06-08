@@ -26,6 +26,7 @@ resources:
 - timescaledb/application.yml
 - timescaledb/secret.yml
 - ghcr-secret.yml
+- mqtt-key-secret.yml
 - namespaces.yml
 images:
 - name: backend-api

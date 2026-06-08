@@ -22,6 +22,8 @@ POSTGRES_USERNAME = os.environ.get("POSTGRES_USERNAME", "admin")
 POSTGRES_PASSWORD = os.environ.get("POSTGRES_PASSWORD", "admin")
 POSTGRES_DB = os.environ.get("POSTGRES_DB", "default_db")
 
+MQTT_KEY = os.environ.get("MQTT_KEY", "key")
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] [%(name)s] %(message)s",
@@ -47,6 +49,11 @@ def get_db_connection():
 def process_message(ch, method, properties, body):
     try:
         payload = json.loads(body.decode())
+
+        if payload.get("key") != MQTT_KEY:
+            logger.warning("Invalid MQTT key. Message rejected.")
+            ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
+            return
 
         routing_key = method.routing_key
         device_id = routing_key.split(".")[-1]

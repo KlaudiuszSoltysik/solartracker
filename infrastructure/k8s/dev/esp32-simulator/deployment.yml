@@ -40,3 +40,8 @@ spec:
             secretKeyRef:
               name: timescaledb-creds
               key: password
+        - name: MQTT_KEY
+          valueFrom:
+            secretKeyRef:
+              name: mqtt-key-secret
+              key: key

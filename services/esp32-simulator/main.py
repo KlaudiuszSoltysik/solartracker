@@ -17,6 +17,7 @@ PORT = int(os.environ.get("MQTT_PORT", "1883"))
 FREQ = int(os.environ.get("SEND_INTERVAL", "30"))
 RABBITMQ_USERNAME = os.environ.get("RABBITMQ_USERNAME", "admin")
 RABBITMQ_PASSWORD = os.environ.get("RABBITMQ_PASSWORD", "admin")
+MQTT_KEY = os.environ.get("MQTT_KEY", "key")
 
 logging.basicConfig(
     level=logging.INFO,
@@ -61,6 +62,7 @@ def on_message(client, userdata, msg):
 
 def generate_mock_telemetry():
     return {
+        "key": MQTT_KEY,
         "timestamp": int(time.time()),
         "voltage_v": round(random.uniform(28.5, 34.2), 2),
         "current_a": round(random.uniform(0.05, 1.0), 2),
