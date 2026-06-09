@@ -1,7 +1,7 @@
 #ifndef SENSOR_MANAGER_H
 #define SENSOR_MANAGER_H
 
-#include <Adafruit_INA219.h>
+#include <INA226.h>
 #include <Adafruit_TSL2591.h>
 #include <Adafruit_BMP280.h>
 #include <Wire.h>

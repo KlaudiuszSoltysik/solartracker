@@ -1,6 +1,7 @@
 #include <WiFi.h>
 #include "wifi_manager.h"
 #include "config.h"
+#include "secrets.h"
 
 void setupWifi()
 {

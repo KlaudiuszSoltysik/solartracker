@@ -7,7 +7,7 @@
 #include "mqtt_manager.h"
 #include "time_manager.h"
 #include "yaw_controller.h"
-
+#include "secrets.h"
 namespace
 {
     WiFiClient wifiClient;

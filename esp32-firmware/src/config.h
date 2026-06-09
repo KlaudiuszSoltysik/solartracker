@@ -7,7 +7,7 @@
 // --- I2C MAGISTRAL CONFIGURATION ---
 // =================================================================
 
-// I2C no 0 (INA219 + left TSL2591)
+// I2C no 0 (INA226 + left TSL2591)
 #define I2C0_SDA 21
 #define I2C0_SCL 22
 
@@ -16,8 +16,10 @@
 #define I2C1_SCL 16
 
 // I2C addresses
-#define ADDR_INA219 0x40
+#define ADDR_INA226 0x40
 #define ADDR_TSL2591 0x29
+#define INA226_SHUNT_OHMS 0.1f
+#define INA226_MAX_CURRENT_A 0.8f
 
 // =================================================================
 // --- OTHER SENSORS ---
@@ -52,7 +54,7 @@
 #define CLOUD_THRESHOLD_LUX 200    // Cloudiness threshold
 #define STEP_ANGLE 0.5f            // Correction step (in degrees)
 #define MIN_MOVEMENT_ANGLE 0.5f    // Minimum movement angle (in degrees)
-#define LIMIT_SWITCH_ANGLE_TOLERANCE 6.0f // Max allowed angle error when a limit switch is active
+#define LIMIT_SWITCH_ANGLE_TOLERANCE 10.0f // Max allowed angle error when a limit switch is active
 // Physical left limit angle. Panel points straight ahead at 180 deg.
 #define HOME_POSITION_ANGLE 105.0f
 
@@ -67,9 +69,7 @@
 // =================================================================
 #define METRICS_INTERVAL 10.0f // metrics sending frequency
 #define TELEMETRY_INTERVAL 5000 // data sending frequency (milliseconds)
-#define SENSORS_READ_INTERVAL 10.0f // sensors reading frequency (seconds)
-#define WIFI_SSID "GooglePixel"
-#define WIFI_PASS "12345678"
+#define SENSORS_READ_INTERVAL 3.0f // sensors reading frequency (seconds)
 
 // NTP servers config
 #define NTP_SERVER_1 "pool.ntp.org"
@@ -77,7 +77,7 @@
 #define TIME_ZONE "CET-1CEST,M3.5.0,M10.5.0/3"
 
 // MQTT config
-#define DEVICE_ID "ESP_test"
+#define DEVICE_ID "ESP_001"
 #define MQTT_BROKER "test.mosquitto.org"
 #define MQTT_PORT 1883
 #define MQTT_USER ""
