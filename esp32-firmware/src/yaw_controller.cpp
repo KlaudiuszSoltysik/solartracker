@@ -7,10 +7,12 @@
 #include "config.h"
 
 unsigned long lastYawCheck = 0;
+unsigned long lastSensorCheck = 0;
 TrackingMode currentMode = MODE_HYBRID;
 float targetManualAngle = 0.0f;
 float minYawAngle = DEFAULT_MIN_YAW_ANGLE;
 float maxYawAngle = DEFAULT_MAX_YAW_ANGLE;
+bool sensorCorrectionActive = false;
 
 void moveToAbsoluteAngle(float targetAngle)
 {
@@ -37,27 +39,67 @@ void moveToAbsoluteAngle(float targetAngle)
     }
 }
 
+bool isTimeForSensorLogic()
+{
+    unsigned long interval = sensorCorrectionActive
+                                 ? SENSOR_CORRECTION_INTERVAL
+                                 : SENSOR_TRACK_CHECK_INTERVAL;
+
+    unsigned long now = millis();
+    if (lastSensorCheck != 0 && now - lastSensorCheck < interval)
+        return false;
+
+    lastSensorCheck = now;
+    return true;
+}
+
+float getSensorCorrectionStep(int absDiff)
+{
+    if (absDiff >= SENSOR_STEP_LARGE_LUX)
+        return SENSOR_STEP_LARGE_ANGLE;
+
+    if (absDiff >= SENSOR_STEP_MEDIUM_LUX)
+        return SENSOR_STEP_MEDIUM_ANGLE;
+
+    return STEP_ANGLE;
+}
+
 void executeSensorLogic(SensorData data)
 {
     int diff = (int)data.luxLeft - (int)data.luxRight;
-    if (abs(diff) > DEADBAND_LUX)
+    int absDiff = abs(diff);
+
+    if (!sensorCorrectionActive && absDiff <= SENSOR_CORRECTION_START_LUX)
+    {
+        Serial.printf("[YAW-SENSOR] Waiting. Lux difference: %d, start threshold: %d\n",
+                      diff, SENSOR_CORRECTION_START_LUX);
+        return;
+    }
+
+    if (absDiff <= SENSOR_CORRECTION_STOP_LUX)
+    {
+        sensorCorrectionActive = false;
+        Serial.printf("[YAW-SENSOR] Optimal position. Lux difference: %d\n", diff);
+        return;
+    }
+
+    sensorCorrectionActive = true;
+
+    if (absDiff > SENSOR_CORRECTION_STOP_LUX)
     {
         float correction;
+        float correctionStep = getSensorCorrectionStep(absDiff);
 
         if (diff > 0)
         {
-            correction = -STEP_ANGLE; // If condition is met
+            correction = -correctionStep; // Left sensor sees more light, rotate toward it
         }
         else
         {
-            correction = STEP_ANGLE; // If condition is NOT met
+            correction = correctionStep; // Right sensor sees more light, rotate toward it
         }
         moveToAbsoluteAngle(getCurrentPanelAngle() + correction);
         Serial.printf("[YAW-SENSOR] Correction: %.1f deg (Lux difference: %d)\n", correction, diff);
-    }
-    else
-    {
-        Serial.printf("[YAW-SENSOR] Optimal position.\n");
     }
 }
 
@@ -105,12 +147,13 @@ void handleYawController()
     if (!isPanelHomed() || hasMotorFault())
         return;
 
-    SensorData data = readAllSensors();
-
     switch (currentMode)
     {
     case MODE_SENSOR:
-        executeSensorLogic(data);
+        if (!isTimeForSensorLogic())
+            return;
+
+        executeSensorLogic(readAllSensors());
         break;
 
     case MODE_ASTRO:
@@ -118,8 +161,14 @@ void handleYawController()
         break;
 
     case MODE_HYBRID:
+    {
+        if (!isTimeForSensorLogic())
+            return;
+
+        SensorData data = readAllSensors();
         if (data.luxLeft < CLOUD_THRESHOLD_LUX && data.luxRight < CLOUD_THRESHOLD_LUX)
         {
+            sensorCorrectionActive = false;
             Serial.println("[YAW-HYBRID] Dark/Cloudy! Switching to Astro position.");
             moveToAbsoluteAngle(calculateLocalAstroAngle());
         }
@@ -128,6 +177,7 @@ void handleYawController()
             executeSensorLogic(data);
         }
         break;
+    }
 
     case MODE_MANUAL:
         moveToAbsoluteAngle(targetManualAngle);
@@ -139,6 +189,8 @@ void handleYawController()
 void setTrackingMode(TrackingMode newMode)
 {
     currentMode = newMode;
+    sensorCorrectionActive = false;
+    lastSensorCheck = 0;
     Serial.printf("[YAW] Switching mode to: %d\n", newMode);
 }
 void setManualTargetAngle(float angle) { targetManualAngle = angle; }

@@ -45,12 +45,22 @@
 #define DEFAULT_MIN_YAW_ANGLE 105.5f
 #define DEFAULT_MAX_YAW_ANGLE 255.5f
 #define PARK_POSITION_ANGLE 180.0f
+#define HOMING_TIMEOUT_MS 30000UL
+#define HOMING_MAX_TRAVEL_ANGLE 180.0f
 
 // =================================================================
 // --- YAW CONTROLLER CONFIG ---
 // =================================================================
-#define YAW_CONTROL_INTERVAL 3000  // How often in ms we check the sun
-#define DEADBAND_LUX 80            // Hysteresis (dead zone)
+#define YAW_CONTROL_INTERVAL 3000  // How often in ms we check astro/manual yaw targets
+#define SENSOR_TRACK_CHECK_INTERVAL 60000 // How often in ms sensors can start a new correction cycle
+#define SENSOR_CORRECTION_INTERVAL 3000   // How often in ms sensors correct while tracking is active
+#define SENSOR_CORRECTION_START_LUX 150   // Start sensor tracking only above this lux difference
+#define SENSOR_CORRECTION_STOP_LUX 80     // Stop sensor tracking once below this lux difference
+#define SENSOR_STEP_MEDIUM_LUX 500        // Use medium correction step above this lux difference
+#define SENSOR_STEP_LARGE_LUX 3000        // Use large correction step above this lux difference
+#define SENSOR_STEP_MEDIUM_ANGLE 1.0f     // Medium sensor correction step in degrees
+#define SENSOR_STEP_LARGE_ANGLE 1.5f      // Large sensor correction step in degrees
+#define DEADBAND_LUX SENSOR_CORRECTION_STOP_LUX
 #define CLOUD_THRESHOLD_LUX 200    // Cloudiness threshold
 #define STEP_ANGLE 0.5f            // Correction step (in degrees)
 #define MIN_MOVEMENT_ANGLE 0.5f    // Minimum movement angle (in degrees)
@@ -79,7 +89,7 @@
 // MQTT config
 #define DEVICE_ID "ESP_001"
 #define MQTT_BROKER_URI "wss://mqtt.260824.xyz/ws"
-#define MQTT_RECONNECT_INTERVAL 5000
+#define MQTT_RECONNECT_INTERVAL 60000
 #define MQTT_TELEMETRY_TOPIC_PREFIX "telemetry/device/"
 #define MQTT_COMMAND_TOPIC_PREFIX "controls/device/"
 #define LUX_TO_IRRADIANCE_DIVISOR 125.0f

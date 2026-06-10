@@ -51,17 +51,17 @@ void loop()
   //   Serial.println("============================");
   // }
 
-  // if (!isMotorMoving() && isTimeToReadSensors())
-  // {
-  //   SensorData data = readAllSensors();
-  //   Serial.printf("Voltage:       %.2f V\n", data.voltage);
-  //   Serial.printf("Current:       %.2f mA\n", data.current);
-  //   Serial.printf("Power:         %.2f mW\n", data.power);
-  //   Serial.printf("Temperature:   %.2f C\n", data.temperature);
-  //   Serial.printf("Lux (Left):    %lu lux\n", data.luxLeft);
-  //   Serial.printf("Lux (Right):   %lu lux\n", data.luxRight);
-  //   Serial.println("============================");
-  // }
+  if (!isMotorMoving() && isTimeToReadSensors())
+  {
+    SensorData data = readAllSensors();
+    Serial.printf("Voltage:       %.2f V\n", data.voltage);
+    Serial.printf("Current:       %.2f mA\n", data.current);
+    Serial.printf("Power:         %.2f mW\n", data.power);
+    Serial.printf("Temperature:   %.2f C\n", data.temperature);
+    Serial.printf("Lux (Left):    %lu lux\n", data.luxLeft);
+    Serial.printf("Lux (Right):   %lu lux\n", data.luxRight);
+    Serial.println("============================");
+  }
 
   if (!isMotorMoving() && millis() - lastTelemetrySentAt >= TELEMETRY_INTERVAL)
   {

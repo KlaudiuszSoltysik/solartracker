@@ -17,11 +17,19 @@ float calculatePanelAngleFromCurrentPosition()
     return HOME_POSITION_ANGLE + (((float)stepper.currentPosition() * MOTOR_DIRECTION_SIGN) / totalStepsForPanelRev) * 360.0f;
 }
 
+long angleToSteps(float angle)
+{
+    float totalStepsForPanelRev = STEPS_PER_REV * MICROSTEPPING * GEAR_RATIO;
+    float stepsPerDegree = totalStepsForPanelRev / 360.0f;
+    return angle * stepsPerDegree * MOTOR_DIRECTION_SIGN;
+}
+
 void setMotorFault(const char *message)
 {
     motorFault = true;
     panelHomed = false;
     stepper.stop();
+    digitalWrite(PIN_MOTOR_ENA, HIGH);
     Serial.printf("[MOTOR-FAULT] %s\n", message);
 }
 
@@ -121,15 +129,7 @@ void moveMotorByAngle(float angle)
         return;
     }
 
-    // 1. Calculate total motor steps for one full rotation (360 degrees) of the panel
-    // Motor steps * microstepping * gearbox ratio
-    float totalStepsForPanelRev = STEPS_PER_REV * MICROSTEPPING * GEAR_RATIO;
-
-    // 2. Calculate steps per degree of panel rotation
-    float stepsPerDegree = totalStepsForPanelRev / 360.0f;
-
-    // 3. Calculate target step count for the requested angle
-    long stepsToMove = angle * stepsPerDegree * MOTOR_DIRECTION_SIGN;
+    long stepsToMove = angleToSteps(angle);
 
     // Command the movement to AccelStepper
     stepper.move(stepsToMove);
@@ -153,11 +153,26 @@ bool moveMotorToHomePosition()
     digitalWrite(PIN_MOTOR_ENA, LOW);
     delay(10);
 
+    unsigned long homingStartedAt = millis();
+    long startPosition = stepper.currentPosition();
+    long maxHomingSteps = abs(angleToSteps(HOMING_MAX_TRAVEL_ANGLE));
 
     // Move in one direction until the limit switch is triggered
     // Assuming home position is at the left limit switch
     while (digitalRead(PIN_LIMIT_LEFT) == HIGH)
     {                                           // While not at home position
+        if (millis() - homingStartedAt > HOMING_TIMEOUT_MS)
+        {
+            setMotorFault("Homing timeout before left limit switch.");
+            return false;
+        }
+
+        if (abs(stepper.currentPosition() - startPosition) > maxHomingSteps)
+        {
+            setMotorFault("Homing exceeded max travel before left limit switch.");
+            return false;
+        }
+
         stepper.setSpeed(HOME_DIRECTION_SIGN * MOTOR_MAX_SPEED / 4); // Move at quarter speed towards home
         stepper.runSpeed();
         yield();
@@ -175,6 +190,12 @@ bool moveMotorToHomePosition()
     moveMotorByAngle(7.2f); // Move 7.2 degrees away from home position
     while (stepper.distanceToGo() != 0)
     {
+        if (millis() - homingStartedAt > HOMING_TIMEOUT_MS)
+        {
+            setMotorFault("Homing timeout while moving away from limit switch.");
+            return false;
+        }
+
         stepper.run();
         yield();
     }
@@ -195,8 +216,24 @@ YawRange calibrateYawRange()
     digitalWrite(PIN_MOTOR_ENA, LOW);
     delay(10);
 
+    unsigned long calibrationStartedAt = millis();
+    long startPosition = stepper.currentPosition();
+    long maxCalibrationSteps = abs(angleToSteps(HOMING_MAX_TRAVEL_ANGLE));
+
     while (digitalRead(PIN_LIMIT_LEFT) == HIGH)
     {
+        if (millis() - calibrationStartedAt > HOMING_TIMEOUT_MS)
+        {
+            setMotorFault("Calibration timeout before left limit switch.");
+            return {};
+        }
+
+        if (abs(stepper.currentPosition() - startPosition) > maxCalibrationSteps)
+        {
+            setMotorFault("Calibration exceeded max travel before left limit switch.");
+            return {};
+        }
+
         stepper.setSpeed(HOME_DIRECTION_SIGN * MOTOR_MAX_SPEED / 4);
         stepper.runSpeed();
         yield();
@@ -211,9 +248,23 @@ YawRange calibrateYawRange()
     delay(1000);
 
     Serial.println("[YAW-CAL] Moving to right limit switch...");
+    calibrationStartedAt = millis();
+    startPosition = stepper.currentPosition();
 
     while (digitalRead(PIN_LIMIT_RIGHT) == HIGH)
     {
+        if (millis() - calibrationStartedAt > HOMING_TIMEOUT_MS)
+        {
+            setMotorFault("Calibration timeout before right limit switch.");
+            return {};
+        }
+
+        if (abs(stepper.currentPosition() - startPosition) > maxCalibrationSteps)
+        {
+            setMotorFault("Calibration exceeded max travel before right limit switch.");
+            return {};
+        }
+
         stepper.setSpeed(-HOME_DIRECTION_SIGN * MOTOR_MAX_SPEED / 4);
         stepper.runSpeed();
         yield();
