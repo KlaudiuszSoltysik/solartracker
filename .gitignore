@@ -1,6 +1,7 @@
 .idea
 .env
 .venv
+esp32-firmware/src/secrets.h
 
 node_modules/
 .expo/

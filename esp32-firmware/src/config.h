@@ -42,8 +42,8 @@
 #define GEAR_RATIO 30.0f       // gearbox ratio (number of motor revolutions needed for one full panel rotation)
 #define MOTOR_DIRECTION_SIGN -1 // motor direction correction relative to panel angle
 #define HOME_DIRECTION_SIGN 1   // motor direction used to reach the physical left home limit
-#define DEFAULT_MIN_YAW_ANGLE 105.0f
-#define DEFAULT_MAX_YAW_ANGLE 255.0f
+#define DEFAULT_MIN_YAW_ANGLE 105.5f
+#define DEFAULT_MAX_YAW_ANGLE 255.5f
 #define PARK_POSITION_ANGLE 180.0f
 
 // =================================================================
@@ -68,7 +68,7 @@
 // --- SYSTEM AND NETWORK PARAMETERS ---
 // =================================================================
 #define METRICS_INTERVAL 10.0f // metrics sending frequency
-#define TELEMETRY_INTERVAL 5000 // data sending frequency (milliseconds)
+#define TELEMETRY_INTERVAL 30000 // data sending frequency (milliseconds)
 #define SENSORS_READ_INTERVAL 3.0f // sensors reading frequency (seconds)
 
 // NTP servers config
@@ -78,10 +78,7 @@
 
 // MQTT config
 #define DEVICE_ID "ESP_001"
-#define MQTT_BROKER "test.mosquitto.org"
-#define MQTT_PORT 1883
-#define MQTT_USER ""
-#define MQTT_PASS ""
+#define MQTT_BROKER_URI "wss://mqtt.260824.xyz/ws"
 #define MQTT_RECONNECT_INTERVAL 5000
 #define MQTT_TELEMETRY_TOPIC_PREFIX "telemetry/device/"
 #define MQTT_COMMAND_TOPIC_PREFIX "controls/device/"

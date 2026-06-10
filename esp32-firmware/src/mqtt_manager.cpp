@@ -1,18 +1,52 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
-#include <PubSubClient.h>
 #include <WiFi.h>
+#include "esp_event.h"
+#include "esp_idf_version.h"
+#include "mqtt_client.h"
 #include "config.h"
 #include "motor_controller.h"
 #include "mqtt_manager.h"
+#include "secrets.h"
 #include "time_manager.h"
 #include "yaw_controller.h"
-#include "secrets.h"
+
 namespace
 {
-    WiFiClient wifiClient;
-    PubSubClient mqttClient(wifiClient);
-    unsigned long lastReconnectAttempt = 0;
+    esp_mqtt_client_handle_t mqttClient = nullptr;
+    volatile bool mqttConnected = false;
+    unsigned long lastWifiReconnectAttempt = 0;
+
+    const char MQTT_ROOT_CA[] PROGMEM = R"EOF(
+-----BEGIN CERTIFICATE-----
+MIICjjCCAjOgAwIBAgIQf/NXaJvCTjAtkOGKQb0OHzAKBggqhkjOPQQDAjBQMSQw
+IgYDVQQLExtHbG9iYWxTaWduIEVDQyBSb290IENBIC0gUjQxEzARBgNVBAoTCkds
+b2JhbFNpZ24xEzARBgNVBAMTCkdsb2JhbFNpZ24wHhcNMjMxMjEzMDkwMDAwWhcN
+MjkwMjIwMTQwMDAwWjA7MQswCQYDVQQGEwJVUzEeMBwGA1UEChMVR29vZ2xlIFRy
+dXN0IFNlcnZpY2VzMQwwCgYDVQQDEwNXRTEwWTATBgcqhkjOPQIBBggqhkjOPQMB
+BwNCAARvzTr+Z1dHTCEDhUDCR127WEcPQMFcF4XGGTfn1XzthkubgdnXGhOlCgP4
+mMTG6J7/EFmPLCaY9eYmJbsPAvpWo4IBAjCB/zAOBgNVHQ8BAf8EBAMCAYYwHQYD
+VR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMCMBIGA1UdEwEB/wQIMAYBAf8CAQAw
+HQYDVR0OBBYEFJB3kjVnxP+ozKnme9mAeXvMk/k4MB8GA1UdIwQYMBaAFFSwe61F
+uOJAf/sKbvu+M8k8o4TVMDYGCCsGAQUFBwEBBCowKDAmBggrBgEFBQcwAoYaaHR0
+cDovL2kucGtpLmdvb2cvZ3NyNC5jcnQwLQYDVR0fBCYwJDAioCCgHoYcaHR0cDov
+L2MucGtpLmdvb2cvci9nc3I0LmNybDATBgNVHSAEDDAKMAgGBmeBDAECATAKBggq
+hkjOPQQDAgNJADBGAiEAokJL0LgR6SOLR02WWxccAq3ndXp4EMRveXMUVUxMWSMC
+IQDspFWa3fj7nLgouSdkcPy1SdOR2AGm9OQWs7veyXsBwA==
+-----END CERTIFICATE-----
+-----BEGIN CERTIFICATE-----
+MIIB3DCCAYOgAwIBAgINAgPlfvU/k/2lCSGypjAKBggqhkjOPQQDAjBQMSQwIgYD
+VQQLExtHbG9iYWxTaWduIEVDQyBSb290IENBIC0gUjQxEzARBgNVBAoTCkdsb2Jh
+bFNpZ24xEzARBgNVBAMTCkdsb2JhbFNpZ24wHhcNMTIxMTEzMDAwMDAwWhcNMzgw
+MTE5MDMxNDA3WjBQMSQwIgYDVQQLExtHbG9iYWxTaWduIEVDQyBSb290IENBIC0g
+UjQxEzARBgNVBAoTCkdsb2JhbFNpZ24xEzARBgNVBAMTCkdsb2JhbFNpZ24wWTAT
+BgcqhkjOPQIBBggqhkjOPQMBBwNCAAS4xnnTj2wlDp8uORkcA6SumuU5BwkWymOx
+uYb4ilfBV85C+nOh92VC/x7BALJucw7/xyHlGKSq2XE/qNS5zowdo0IwQDAOBgNV
+HQ8BAf8EBAMCAYYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQUVLB7rUW44kB/
++wpu+74zyTyjhNUwCgYIKoZIzj0EAwIDRwAwRAIgIk90crlgr/HmnKAWBVBfw147
+bmF0774BxL4YSFlhgjICICadVGNA3jdgUM/I2O2dgq43mLyjj0xMqTQrbO/7lZsm
+-----END CERTIFICATE-----
+)EOF";
 
     String telemetryTopic()
     {
@@ -30,7 +64,7 @@ namespace
         return averageLux / LUX_TO_IRRADIANCE_DIVISOR;
     }
 
-    void handleCommandPayload(byte *payload, unsigned int length)
+    void handleCommandPayload(const char *payload, int length)
     {
         JsonDocument doc;
         DeserializationError error = deserializeJson(doc, payload, length);
@@ -53,66 +87,114 @@ namespace
         }
     }
 
-    void onMqttMessage(char *topic, byte *payload, unsigned int length)
+    void subscribeToCommandTopic()
     {
-        Serial.printf("[MQTT] Message received on %s\n", topic);
-        handleCommandPayload(payload, length);
+        String topic = commandTopic();
+        int messageId = esp_mqtt_client_subscribe(mqttClient, topic.c_str(), 1);
+        Serial.printf("[MQTT] Subscribing to %s, msg_id=%d\n", topic.c_str(), messageId);
     }
 
-    bool reconnectMqtt()
+    void onMqttEvent(void *handlerArgs, esp_event_base_t base, int32_t eventId, void *eventData)
     {
-        if (WiFi.status() != WL_CONNECTED)
+        (void)handlerArgs;
+        (void)base;
+
+        esp_mqtt_event_handle_t event = (esp_mqtt_event_handle_t)eventData;
+
+        switch ((esp_mqtt_event_id_t)eventId)
         {
-            Serial.println("[MQTT] Wi-Fi disconnected. Reconnecting Wi-Fi...");
-            WiFi.reconnect();
-            return false;
+        case MQTT_EVENT_CONNECTED:
+            mqttConnected = true;
+            Serial.println("[MQTT] Connected via WSS.");
+            subscribeToCommandTopic();
+            break;
+
+        case MQTT_EVENT_DISCONNECTED:
+            mqttConnected = false;
+            Serial.println("[MQTT] Disconnected.");
+            break;
+
+        case MQTT_EVENT_DATA:
+            Serial.printf("[MQTT] Message received on %.*s\n", event->topic_len, event->topic);
+            handleCommandPayload(event->data, event->data_len);
+            break;
+
+        case MQTT_EVENT_PUBLISHED:
+            Serial.printf("[MQTT] Telemetry publish acknowledged, msg_id=%d\n", event->msg_id);
+            break;
+
+        case MQTT_EVENT_ERROR:
+            mqttConnected = false;
+            Serial.println("[MQTT] Connection error.");
+            break;
+
+        default:
+            break;
         }
-
-        Serial.printf("[MQTT] Connecting to %s:%d as %s...\n", MQTT_BROKER, MQTT_PORT, DEVICE_ID);
-
-        bool connected = strlen(MQTT_USER) > 0
-                             ? mqttClient.connect(DEVICE_ID, MQTT_USER, MQTT_PASS)
-                             : mqttClient.connect(DEVICE_ID);
-        if (!connected)
-        {
-            Serial.printf("[MQTT] Connection failed, state: %d\n", mqttClient.state());
-            return false;
-        }
-
-        String topic = commandTopic();
-        mqttClient.subscribe(topic.c_str());
-
-        Serial.printf("[MQTT] Connected. Listening on %s\n", topic.c_str());
-        return true;
     }
 }
 
 void initMqtt()
 {
-    mqttClient.setServer(MQTT_BROKER, MQTT_PORT);
-    mqttClient.setCallback(onMqttMessage);
-    mqttClient.setBufferSize(512);
+    esp_mqtt_client_config_t mqttConfig = {};
+
+#if ESP_IDF_VERSION_MAJOR >= 5
+    mqttConfig.broker.address.uri = MQTT_BROKER_URI;
+    mqttConfig.broker.verification.certificate = MQTT_ROOT_CA;
+    mqttConfig.credentials.client_id = DEVICE_ID;
+    mqttConfig.credentials.username = MQTT_USERNAME;
+    mqttConfig.credentials.authentication.password = MQTT_PASSWORD;
+    mqttConfig.session.keepalive = 60;
+    mqttConfig.network.reconnect_timeout_ms = MQTT_RECONNECT_INTERVAL;
+#else
+    mqttConfig.uri = MQTT_BROKER_URI;
+    mqttConfig.cert_pem = MQTT_ROOT_CA;
+    mqttConfig.client_id = DEVICE_ID;
+    mqttConfig.username = MQTT_USERNAME;
+    mqttConfig.password = MQTT_PASSWORD;
+    mqttConfig.keepalive = 60;
+    mqttConfig.reconnect_timeout_ms = MQTT_RECONNECT_INTERVAL;
+#endif
+
+    mqttClient = esp_mqtt_client_init(&mqttConfig);
+    if (mqttClient == nullptr)
+    {
+        Serial.println("[MQTT] Client init failed.");
+        return;
+    }
+
+    esp_mqtt_client_register_event(mqttClient, MQTT_EVENT_ANY, onMqttEvent, nullptr);
+    esp_err_t startStatus = esp_mqtt_client_start(mqttClient);
+
+    if (startStatus != ESP_OK)
+    {
+        Serial.printf("[MQTT] Client start failed: 0x%04X\n", startStatus);
+        return;
+    }
+
+    Serial.printf("[MQTT] Connecting to %s as %s\n", MQTT_BROKER_URI, DEVICE_ID);
 }
 
 void handleMqtt()
 {
-    if (mqttClient.connected())
+    if (WiFi.status() == WL_CONNECTED)
     {
-        mqttClient.loop();
         return;
     }
 
     unsigned long now = millis();
-    if (now - lastReconnectAttempt >= MQTT_RECONNECT_INTERVAL)
+    if (now - lastWifiReconnectAttempt >= MQTT_RECONNECT_INTERVAL)
     {
-        lastReconnectAttempt = now;
-        reconnectMqtt();
+        lastWifiReconnectAttempt = now;
+        mqttConnected = false;
+        Serial.println("[MQTT] Wi-Fi disconnected. Reconnecting Wi-Fi...");
+        WiFi.reconnect();
     }
 }
 
 bool publishTelemetry(const SensorData &data)
 {
-    if (!mqttClient.connected())
+    if (mqttClient == nullptr || !mqttConnected)
     {
         Serial.println("[MQTT] Telemetry skipped: MQTT is not connected.");
         return false;
@@ -126,6 +208,7 @@ bool publishTelemetry(const SensorData &data)
     }
 
     JsonDocument doc;
+    doc["key"] = MQTT_DEVICE_KEY;
     doc["timestamp"] = timestamp;
     doc["voltage_v"] = data.voltage;
     doc["current_a"] = data.current / 1000.0f;
@@ -134,7 +217,7 @@ bool publishTelemetry(const SensorData &data)
     doc["yaw_angle_deg"] = getCurrentYawAngle();
     doc["status"] = getMotorStatus();
 
-    char payload[256];
+    char payload[320];
     size_t payloadLength = serializeJson(doc, payload, sizeof(payload));
     if (payloadLength == 0 || payloadLength >= sizeof(payload))
     {
@@ -143,21 +226,20 @@ bool publishTelemetry(const SensorData &data)
     }
 
     String topic = telemetryTopic();
-    bool published = mqttClient.publish(topic.c_str(), (const uint8_t *)payload, payloadLength);
+    int messageId = esp_mqtt_client_publish(mqttClient, topic.c_str(), payload, payloadLength, 1, 0);
 
-    if (published)
+    if (messageId >= 0)
     {
-        Serial.printf("[MQTT] Telemetry sent to %s: %s\n", topic.c_str(), payload);
-    }
-    else
-    {
-        Serial.println("[MQTT] Telemetry publish failed.");
+        Serial.printf("[MQTT] Telemetry queued to %s, msg_id=%d, bytes=%u\n",
+                      topic.c_str(), messageId, (unsigned int)payloadLength);
+        return true;
     }
 
-    return published;
+    Serial.println("[MQTT] Telemetry publish failed.");
+    return false;
 }
 
 bool isMqttConnected()
 {
-    return mqttClient.connected();
+    return mqttConnected;
 }
