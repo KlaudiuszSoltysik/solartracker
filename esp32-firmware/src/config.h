@@ -54,14 +54,14 @@
 #define YAW_CONTROL_INTERVAL 3000  // How often in ms we check astro/manual yaw targets
 #define SENSOR_TRACK_CHECK_INTERVAL 60000 // How often in ms sensors can start a new correction cycle
 #define SENSOR_CORRECTION_INTERVAL 3000   // How often in ms sensors correct while tracking is active
-#define SENSOR_CORRECTION_START_PERCENT 12.0f // Start sensor tracking above this relative lux difference
-#define SENSOR_CORRECTION_STOP_PERCENT 5.0f   // Stop sensor tracking below this relative lux difference
-#define SENSOR_STEP_MEDIUM_PERCENT 20.0f      // Use medium correction step above this relative lux difference
-#define SENSOR_STEP_LARGE_PERCENT 30.0f       // Use large correction step above this relative lux difference
-#define SENSOR_STEP_MAX_PERCENT 50.0f         // Use max correction step above this relative lux difference
-#define SENSOR_STEP_MEDIUM_ANGLE 1.0f         // Medium sensor correction step in degrees
-#define SENSOR_STEP_LARGE_ANGLE 2.0f          // Large sensor correction step in degrees
-#define SENSOR_STEP_MAX_ANGLE 3.0f            // Max sensor correction step in degrees
+#define SENSOR_CORRECTION_START_PERCENT 8.0f // Start sensor tracking above this relative lux difference
+#define SENSOR_CORRECTION_STOP_PERCENT 3.0f   // Stop sensor tracking below this relative lux difference
+#define SENSOR_STEP_MEDIUM_PERCENT 8.0f      // Use medium correction step above this relative lux difference
+#define SENSOR_STEP_LARGE_PERCENT 20.0f       // Use large correction step above this relative lux difference
+#define SENSOR_STEP_MAX_PERCENT 35.0f         // Use max correction step above this relative lux difference
+#define SENSOR_STEP_MEDIUM_ANGLE 1.5f         // Medium sensor correction step in degrees
+#define SENSOR_STEP_LARGE_ANGLE 3.0f          // Large sensor correction step in degrees
+#define SENSOR_STEP_MAX_ANGLE 5.0f            // Max sensor correction step in degrees
 #define CLOUD_THRESHOLD_LUX 200    // Cloudiness threshold
 #define STEP_ANGLE 0.5f            // Correction step (in degrees)
 #define MIN_MOVEMENT_ANGLE 0.5f    // Minimum movement angle (in degrees)
