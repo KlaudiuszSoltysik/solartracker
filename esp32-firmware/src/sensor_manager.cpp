@@ -15,6 +15,7 @@ Adafruit_BMP280 bmp; // I2C default address 0x76
 bool ina226Ready = false;
 bool tslLeftReady = false;
 bool tslRightReady = false;
+bool bmpReady = false;
 
 Ticker sensorsTimer;
 volatile bool _sensorsFlag = false;
@@ -73,7 +74,11 @@ void initSensors()
         Serial.println("Left TSL2591 not found");
     }
 
-        if (!bmp.begin(0x76))
+        if (bmp.begin(0x76))
+        {
+            bmpReady = true;
+        }
+        else
     {
         Serial.println("BMP280 not found");
     }
@@ -117,8 +122,11 @@ SensorData readAllSensors(bool useSimulation)
             data.current = ina226.getCurrent_mA();
             data.power = ina226.getPower_mW();
         }
-
-        data.temperature = bmp.readTemperature();
+        
+        if (bmpReady)
+        {
+            data.temperature = bmp.readTemperature();
+        }
 
         data.luxLeft = 0;
         data.luxRight = 0;
