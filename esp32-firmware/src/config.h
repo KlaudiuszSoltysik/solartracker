@@ -45,7 +45,7 @@
 #define DEFAULT_MIN_YAW_ANGLE 105.5f
 #define DEFAULT_MAX_YAW_ANGLE 255.5f
 #define PARK_POSITION_ANGLE 180.0f
-#define HOMING_TIMEOUT_MS 30000UL
+#define HOMING_TIMEOUT_MS 60000UL
 #define HOMING_MAX_TRAVEL_ANGLE 180.0f
 
 // =================================================================
@@ -54,13 +54,14 @@
 #define YAW_CONTROL_INTERVAL 3000  // How often in ms we check astro/manual yaw targets
 #define SENSOR_TRACK_CHECK_INTERVAL 60000 // How often in ms sensors can start a new correction cycle
 #define SENSOR_CORRECTION_INTERVAL 3000   // How often in ms sensors correct while tracking is active
-#define SENSOR_CORRECTION_START_LUX 150   // Start sensor tracking only above this lux difference
-#define SENSOR_CORRECTION_STOP_LUX 80     // Stop sensor tracking once below this lux difference
-#define SENSOR_STEP_MEDIUM_LUX 500        // Use medium correction step above this lux difference
-#define SENSOR_STEP_LARGE_LUX 3000        // Use large correction step above this lux difference
-#define SENSOR_STEP_MEDIUM_ANGLE 1.0f     // Medium sensor correction step in degrees
-#define SENSOR_STEP_LARGE_ANGLE 1.5f      // Large sensor correction step in degrees
-#define DEADBAND_LUX SENSOR_CORRECTION_STOP_LUX
+#define SENSOR_CORRECTION_START_PERCENT 12.0f // Start sensor tracking above this relative lux difference
+#define SENSOR_CORRECTION_STOP_PERCENT 5.0f   // Stop sensor tracking below this relative lux difference
+#define SENSOR_STEP_MEDIUM_PERCENT 20.0f      // Use medium correction step above this relative lux difference
+#define SENSOR_STEP_LARGE_PERCENT 30.0f       // Use large correction step above this relative lux difference
+#define SENSOR_STEP_MAX_PERCENT 50.0f         // Use max correction step above this relative lux difference
+#define SENSOR_STEP_MEDIUM_ANGLE 1.0f         // Medium sensor correction step in degrees
+#define SENSOR_STEP_LARGE_ANGLE 2.0f          // Large sensor correction step in degrees
+#define SENSOR_STEP_MAX_ANGLE 3.0f            // Max sensor correction step in degrees
 #define CLOUD_THRESHOLD_LUX 200    // Cloudiness threshold
 #define STEP_ANGLE 0.5f            // Correction step (in degrees)
 #define MIN_MOVEMENT_ANGLE 0.5f    // Minimum movement angle (in degrees)
@@ -79,7 +80,7 @@
 // =================================================================
 #define METRICS_INTERVAL 10.0f // metrics sending frequency
 #define TELEMETRY_INTERVAL 30000 // data sending frequency (milliseconds)
-#define SENSORS_READ_INTERVAL 3.0f // sensors reading frequency (seconds)
+#define SENSORS_READ_INTERVAL 10.0f // sensors reading frequency (seconds)
 
 // NTP servers config
 #define NTP_SERVER_1 "pool.ntp.org"

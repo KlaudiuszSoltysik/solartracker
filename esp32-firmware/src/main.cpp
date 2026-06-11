@@ -22,7 +22,7 @@ void setup()
   // YawRange yawRange = calibrateYawRange();
   // setYawAngleLimits(yawRange.minAngle, yawRange.maxAngle);
   moveMotorToHomePosition();
-  //moveMotorByAngle(PARK_POSITION_ANGLE - getCurrentPanelAngle());
+  moveMotorByAngle(PARK_POSITION_ANGLE - getCurrentPanelAngle());
   initMqtt();
   //calibrateGearRatio(800);
   //calibrateFullHysteresis360(800);

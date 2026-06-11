@@ -108,6 +108,7 @@ bmF0774BxL4YSFlhgjICICadVGNA3jdgUM/I2O2dgq43mLyjj0xMqTQrbO/7lZsm
         {
         case MQTT_EVENT_CONNECTED:
             mqttConnected = true;
+            mqttStarted = true;
             mqttReconnectPending = false;
             Serial.println("[MQTT] Connected via WSS.");
             subscribeToCommandTopic();
@@ -115,7 +116,6 @@ bmF0774BxL4YSFlhgjICICadVGNA3jdgUM/I2O2dgq43mLyjj0xMqTQrbO/7lZsm
 
         case MQTT_EVENT_DISCONNECTED:
             mqttConnected = false;
-            mqttStarted = false;
             mqttReconnectPending = true;
             Serial.println("[MQTT] Disconnected.");
             break;
@@ -133,11 +133,6 @@ bmF0774BxL4YSFlhgjICICadVGNA3jdgUM/I2O2dgq43mLyjj0xMqTQrbO/7lZsm
             mqttConnected = false;
             mqttReconnectPending = true;
             Serial.println("[MQTT] Connection error.");
-            if (mqttClient != nullptr)
-            {
-                esp_mqtt_client_stop(mqttClient);
-                mqttStarted = false;
-            }
             break;
 
         default:
@@ -184,22 +179,23 @@ void initMqtt()
 
 void handleMqtt()
 {
-    if (WiFi.status() == WL_CONNECTED)
-    {
-        return;
-    }
-
     unsigned long now = millis();
-    if (now - lastWifiReconnectAttempt >= MQTT_RECONNECT_INTERVAL)
+
+    if (WiFi.status() != WL_CONNECTED)
     {
-        lastWifiReconnectAttempt = now;
         mqttConnected = false;
-        Serial.println("[MQTT] Wi-Fi disconnected. Reconnecting Wi-Fi...");
-        WiFi.reconnect();
+
+        if (now - lastWifiReconnectAttempt >= MQTT_RECONNECT_INTERVAL)
+        {
+            lastWifiReconnectAttempt = now;
+            Serial.println("[MQTT] Wi-Fi disconnected. Reconnecting Wi-Fi...");
+            WiFi.reconnect();
+        }
+
         return;
     }
 
-    if (mqttClient == nullptr || mqttConnected || mqttStarted || !mqttReconnectPending)
+    if (mqttClient == nullptr || mqttConnected || !mqttReconnectPending)
         return;
 
     if (isMotorMoving())
@@ -209,13 +205,17 @@ void handleMqtt()
         return;
 
     lastMqttConnectAttempt = now;
-    Serial.printf("[MQTT] Connecting to %s as %s\n", MQTT_BROKER_URI, DEVICE_ID);
+    Serial.printf("[MQTT] %s to %s as %s\n",
+                  mqttStarted ? "Reconnecting" : "Connecting",
+                  MQTT_BROKER_URI,
+                  DEVICE_ID);
 
-    esp_err_t startStatus = esp_mqtt_client_start(mqttClient);
-    if (startStatus != ESP_OK)
+    esp_err_t connectStatus = mqttStarted
+                                  ? esp_mqtt_client_reconnect(mqttClient)
+                                  : esp_mqtt_client_start(mqttClient);
+    if (connectStatus != ESP_OK)
     {
-        Serial.printf("[MQTT] Client start failed: 0x%04X\n", startStatus);
-        mqttStarted = false;
+        Serial.printf("[MQTT] Client connect failed: 0x%04X\n", connectStatus);
         mqttReconnectPending = true;
         return;
     }

@@ -53,12 +53,24 @@ bool isTimeForSensorLogic()
     return true;
 }
 
-float getSensorCorrectionStep(int absDiff)
+float getLuxDifferencePercent(int absDiff, SensorData data)
 {
-    if (absDiff >= SENSOR_STEP_LARGE_LUX)
+    float averageLux = ((float)data.luxLeft + (float)data.luxRight) / 2.0f;
+    if (averageLux <= 0.0f)
+        return 0.0f;
+
+    return ((float)absDiff / averageLux) * 100.0f;
+}
+
+float getSensorCorrectionStep(float diffPercent)
+{
+    if (diffPercent >= SENSOR_STEP_MAX_PERCENT)
+        return SENSOR_STEP_MAX_ANGLE;
+
+    if (diffPercent >= SENSOR_STEP_LARGE_PERCENT)
         return SENSOR_STEP_LARGE_ANGLE;
 
-    if (absDiff >= SENSOR_STEP_MEDIUM_LUX)
+    if (diffPercent >= SENSOR_STEP_MEDIUM_PERCENT)
         return SENSOR_STEP_MEDIUM_ANGLE;
 
     return STEP_ANGLE;
@@ -68,27 +80,28 @@ void executeSensorLogic(SensorData data)
 {
     int diff = (int)data.luxLeft - (int)data.luxRight;
     int absDiff = abs(diff);
+    float diffPercent = getLuxDifferencePercent(absDiff, data);
 
-    if (!sensorCorrectionActive && absDiff <= SENSOR_CORRECTION_START_LUX)
+    if (!sensorCorrectionActive && diffPercent <= SENSOR_CORRECTION_START_PERCENT)
     {
-        Serial.printf("[YAW-SENSOR] Waiting. Lux difference: %d, start threshold: %d\n",
-                      diff, SENSOR_CORRECTION_START_LUX);
+        Serial.printf("[YAW-SENSOR] Waiting. Lux difference: %d (%.1f%%), start threshold: %.1f%%\n",
+                      diff, diffPercent, SENSOR_CORRECTION_START_PERCENT);
         return;
     }
 
-    if (absDiff <= SENSOR_CORRECTION_STOP_LUX)
+    if (diffPercent <= SENSOR_CORRECTION_STOP_PERCENT)
     {
         sensorCorrectionActive = false;
-        Serial.printf("[YAW-SENSOR] Optimal position. Lux difference: %d\n", diff);
+        Serial.printf("[YAW-SENSOR] Optimal position. Lux difference: %d (%.1f%%)\n", diff, diffPercent);
         return;
     }
 
     sensorCorrectionActive = true;
 
-    if (absDiff > SENSOR_CORRECTION_STOP_LUX)
+    if (diffPercent > SENSOR_CORRECTION_STOP_PERCENT)
     {
         float correction;
-        float correctionStep = getSensorCorrectionStep(absDiff);
+        float correctionStep = getSensorCorrectionStep(diffPercent);
 
         if (diff > 0)
         {
@@ -99,7 +112,8 @@ void executeSensorLogic(SensorData data)
             correction = correctionStep; // Right sensor sees more light, rotate toward it
         }
         moveToAbsoluteAngle(getCurrentPanelAngle() + correction);
-        Serial.printf("[YAW-SENSOR] Correction: %.1f deg (Lux difference: %d)\n", correction, diff);
+        Serial.printf("[YAW-SENSOR] Correction: %.1f deg (Lux difference: %d, %.1f%%)\n",
+                      correction, diff, diffPercent);
     }
 }
 
