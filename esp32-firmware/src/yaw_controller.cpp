@@ -62,6 +62,11 @@ float getLuxDifferencePercent(int absDiff, SensorData data)
     return ((float)absDiff / averageLux) * 100.0f;
 }
 
+bool hasInvalidLuxReading(SensorData data)
+{
+    return data.luxLeft > SENSOR_INVALID_MAX_LUX || data.luxRight > SENSOR_INVALID_MAX_LUX;
+}
+
 float getSensorCorrectionStep(float diffPercent)
 {
     if (diffPercent >= SENSOR_STEP_MAX_PERCENT)
@@ -184,6 +189,13 @@ void handleYawController()
         {
             sensorCorrectionActive = false;
             Serial.println("[YAW-HYBRID] Dark/Cloudy! Switching to Astro position.");
+            moveToAbsoluteAngle(calculateLocalAstroAngle());
+        }
+        else if (hasInvalidLuxReading(data))
+        {
+            sensorCorrectionActive = false;
+            Serial.printf("[YAW-HYBRID] Invalid lux reading detected (%u/%u). Switching to Astro position.\n",
+                          data.luxLeft, data.luxRight);
             moveToAbsoluteAngle(calculateLocalAstroAngle());
         }
         else

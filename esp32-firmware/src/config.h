@@ -63,6 +63,7 @@
 #define SENSOR_STEP_LARGE_ANGLE 3.0f          // Large sensor correction step in degrees
 #define SENSOR_STEP_MAX_ANGLE 5.0f            // Max sensor correction step in degrees
 #define CLOUD_THRESHOLD_LUX 200    // Cloudiness threshold
+#define SENSOR_INVALID_MAX_LUX 65000 // Treat higher lux readings as invalid sensor saturation
 #define STEP_ANGLE 0.5f            // Correction step (in degrees)
 #define MIN_MOVEMENT_ANGLE 0.5f    // Minimum movement angle (in degrees)
 #define LIMIT_SWITCH_ANGLE_TOLERANCE 10.0f // Max allowed angle error when a limit switch is active
