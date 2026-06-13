@@ -3,6 +3,7 @@
 .vscode
 .env
 .venv
+esp32-firmware/src/secrets.h
 
 # Mobile app
 google-services.json

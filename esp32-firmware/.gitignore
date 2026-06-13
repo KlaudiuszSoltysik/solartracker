@@ -1,0 +1,4 @@
+.pio
+.vscode
+.test
+esp32-firmware/src/secrets.h
