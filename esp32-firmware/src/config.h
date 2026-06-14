@@ -28,7 +28,7 @@
 #define PIN_LIMIT_RIGHT 26     // right limit switch
 
 // =================================================================
-// --- STEPPER MOTOR CONFIG (TB6600) ---
+// --- STEPPER MOTOR CONFIG (A4988) ---
 // =================================================================
 #define PIN_MOTOR_STEP 12  // steps
 #define PIN_MOTOR_DIR  14  // direction
@@ -55,12 +55,12 @@
 #define SENSOR_TRACK_CHECK_INTERVAL 60000 // How often in ms sensors can start a new correction cycle
 #define SENSOR_CORRECTION_INTERVAL 3000   // How often in ms sensors correct while tracking is active
 #define SENSOR_CORRECTION_START_PERCENT 8.0f // Start sensor tracking above this relative lux difference
-#define SENSOR_CORRECTION_STOP_PERCENT 3.0f   // Stop sensor tracking below this relative lux difference
+#define SENSOR_CORRECTION_STOP_PERCENT 5.0f   // Stop sensor tracking below this relative lux difference
 #define SENSOR_STEP_MEDIUM_PERCENT 8.0f      // Use medium correction step above this relative lux difference
 #define SENSOR_STEP_LARGE_PERCENT 20.0f       // Use large correction step above this relative lux difference
 #define SENSOR_STEP_MAX_PERCENT 35.0f         // Use max correction step above this relative lux difference
-#define SENSOR_STEP_MEDIUM_ANGLE 1.5f         // Medium sensor correction step in degrees
-#define SENSOR_STEP_LARGE_ANGLE 3.0f          // Large sensor correction step in degrees
+#define SENSOR_STEP_MEDIUM_ANGLE 1.0f         // Medium sensor correction step in degrees
+#define SENSOR_STEP_LARGE_ANGLE 2.5f          // Large sensor correction step in degrees
 #define SENSOR_STEP_MAX_ANGLE 5.0f            // Max sensor correction step in degrees
 #define CLOUD_THRESHOLD_LUX 200    // Cloudiness threshold
 #define SENSOR_INVALID_MAX_LUX 65000 // Treat higher lux readings as invalid sensor saturation
@@ -92,6 +92,9 @@
 #define DEVICE_ID "ESP_001"
 #define MQTT_BROKER_URI "wss://mqtt.260824.xyz/ws"
 #define MQTT_RECONNECT_INTERVAL 60000
+#define MQTT_BUFFER_TELEMETRY true
+#define MQTT_TELEMETRY_BUFFER_SIZE 60
+#define MQTT_QUEUE_FLUSH_INTERVAL 1000
 #define MQTT_TELEMETRY_TOPIC_PREFIX "telemetry/device/"
 #define MQTT_COMMAND_TOPIC_PREFIX "controls/device/"
 #define LUX_TO_IRRADIANCE_DIVISOR 125.0f
