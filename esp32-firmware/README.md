@@ -1,6 +1,6 @@
 # ESP32 Solar Tracker Firmware
 
-Firmware for an ESP32-based single-axis solar tracker. The controller reads light, voltage/current, and temperature sensors, drives a stepper motor through a TB6600 driver, uses limit switches for homing/safety, and exchanges telemetry/commands with the backend over MQTT via WSS.
+Firmware for an ESP32-based single-axis solar tracker. The controller reads light, voltage/current, and temperature sensors, drives a stepper motor through a A4988 driver, uses limit switches for homing/safety, and exchanges telemetry/commands with the backend over MQTT via WSS.
 
 ## Main Features
 
@@ -17,6 +17,7 @@ Firmware for an ESP32-based single-axis solar tracker. The controller reads ligh
 - Two TSL2591 light sensors
 - BMP280 temperature measurement
 - MQTT telemetry and remote yaw commands over `wss://`
+- Optional RAM buffering for telemetry when MQTT is offline
 - NTP time synchronization for astronomical tracking
 
 ## Hardware
@@ -29,6 +30,7 @@ Current pin configuration is defined in `src/config.h`.
 |---|---|---|
 | INA226 | voltage/current/power | SDA `21`, SCL `22` |
 | Left TSL2591 | left light sensor | SDA `21`, SCL `22` |
+| BMP280 | temperature sensor | SDA `21`, SCL `22` |
 
 ### I2C Bus 1
 
@@ -40,9 +42,9 @@ Current pin configuration is defined in `src/config.h`.
 
 | Signal | Pin |
 |---|---:|
-| TB6600 STEP | `12` |
-| TB6600 DIR | `14` |
-| TB6600 ENA | `27` |
+| A4988 STEP | `12` |
+| A4988 DIR | `14` |
+| A4988 ENA | `27` |
 | Left limit switch | `25` |
 | Right limit switch | `26` |
 
@@ -136,6 +138,36 @@ Example telemetry sent by ESP32:
 ```
 
 `key` is required by the backend telemetry processor.
+
+### Offline Telemetry Buffer
+
+Telemetry buffering can be enabled or disabled in `src/config.h`:
+
+```cpp
+#define MQTT_BUFFER_TELEMETRY true
+#define MQTT_TELEMETRY_BUFFER_SIZE 60
+#define MQTT_QUEUE_FLUSH_INTERVAL 1000
+```
+
+When `MQTT_BUFFER_TELEMETRY` is `true`:
+
+- current telemetry is sent immediately if MQTT is connected
+- if MQTT is disconnected, the ready JSON payload is stored in a RAM ring buffer
+- the buffer stores up to 60 telemetry messages
+- if the buffer is full, the oldest message is overwritten
+- after MQTT reconnects, queued messages are sent one by one
+- queued messages are flushed at most once per `MQTT_QUEUE_FLUSH_INTERVAL`
+- queued messages are not flushed while the motor is moving
+
+With the current telemetry interval of 30 seconds, a 60-message buffer stores about 30 minutes of offline telemetry.
+
+If backend compatibility becomes a problem, set:
+
+```cpp
+#define MQTT_BUFFER_TELEMETRY false
+```
+
+In that mode, telemetry behaves like the original implementation: if MQTT is disconnected, the sample is skipped instead of buffered.
 
 ### Command Payload
 
@@ -268,5 +300,5 @@ Expected MQTT logs after a successful connection:
 - The tracker uses a self-locking worm gearbox, so disabling motor coils after movement is expected.
 - MQTT reconnect is handled manually to avoid blocking motor stepping during network outages.
 - If MQTT fails while the motor is moving, reconnect is delayed until the motor stops.
+- If telemetry buffering is enabled, offline samples are kept only in RAM and are lost after ESP32 reset.
 - The CA certificate chain for `mqtt.260824.xyz` is embedded in `src/mqtt_manager.cpp`. If the broker certificate chain changes, MQTT TLS may need an updated CA certificate.
-

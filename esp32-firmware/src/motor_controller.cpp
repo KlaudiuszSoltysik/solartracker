@@ -3,7 +3,7 @@
 #include "config.h"
 #include "motor_controller.h"
 
-// Initialize object of motor (type: DRIVER for TB6600: STEP + DIR)
+// Initialize object of motor (type: DRIVER for A4988: STEP + DIR)
 AccelStepper stepper(AccelStepper::DRIVER, PIN_MOTOR_STEP, PIN_MOTOR_DIR);
 
 bool panelHomed = false;

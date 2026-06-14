@@ -19,6 +19,18 @@ namespace
     bool mqttReconnectPending = true;
     unsigned long lastMqttConnectAttempt = 0;
     unsigned long lastWifiReconnectAttempt = 0;
+    unsigned long lastQueuedMessageSentAt = 0;
+
+    struct QueuedMqttMessage
+    {
+        char topic[64];
+        char payload[320];
+        size_t payloadLength;
+    };
+
+    QueuedMqttMessage telemetryQueue[MQTT_TELEMETRY_BUFFER_SIZE];
+    size_t telemetryQueueHead = 0;
+    size_t telemetryQueueCount = 0;
 
     const char MQTT_ROOT_CA[] PROGMEM = R"EOF(
 -----BEGIN CERTIFICATE-----
@@ -65,6 +77,65 @@ bmF0774BxL4YSFlhgjICICadVGNA3jdgUM/I2O2dgq43mLyjj0xMqTQrbO/7lZsm
     {
         float averageLux = ((float)data.luxLeft + (float)data.luxRight) / 2.0f;
         return averageLux / LUX_TO_IRRADIANCE_DIVISOR;
+    }
+
+    bool publishRawMessage(const char *topic, const char *payload, size_t payloadLength)
+    {
+        if (mqttClient == nullptr || !mqttConnected)
+            return false;
+
+        int messageId = esp_mqtt_client_publish(mqttClient, topic, payload, payloadLength, 1, 0);
+        return messageId >= 0;
+    }
+
+    void queueTelemetryMessage(const char *topic, const char *payload, size_t payloadLength)
+    {
+        if (!MQTT_BUFFER_TELEMETRY)
+            return;
+
+        size_t index;
+        if (telemetryQueueCount >= MQTT_TELEMETRY_BUFFER_SIZE)
+        {
+            index = telemetryQueueHead;
+            telemetryQueueHead = (telemetryQueueHead + 1) % MQTT_TELEMETRY_BUFFER_SIZE;
+            Serial.println("[MQTT] Telemetry queue full. Dropping oldest message.");
+        }
+        else
+        {
+            index = (telemetryQueueHead + telemetryQueueCount) % MQTT_TELEMETRY_BUFFER_SIZE;
+            telemetryQueueCount++;
+        }
+
+        strlcpy(telemetryQueue[index].topic, topic, sizeof(telemetryQueue[index].topic));
+        size_t safeLength = min(payloadLength, sizeof(telemetryQueue[index].payload) - 1);
+        memcpy(telemetryQueue[index].payload, payload, safeLength);
+        telemetryQueue[index].payload[safeLength] = '\0';
+        telemetryQueue[index].payloadLength = safeLength;
+
+        Serial.printf("[MQTT] Telemetry buffered. Queue: %u/%u\n",
+                      (unsigned int)telemetryQueueCount,
+                      (unsigned int)MQTT_TELEMETRY_BUFFER_SIZE);
+    }
+
+    void flushQueuedTelemetry()
+    {
+        if (!MQTT_BUFFER_TELEMETRY || telemetryQueueCount == 0 || !mqttConnected || isMotorMoving())
+            return;
+
+        unsigned long now = millis();
+        if (now - lastQueuedMessageSentAt < MQTT_QUEUE_FLUSH_INTERVAL)
+            return;
+
+        QueuedMqttMessage &message = telemetryQueue[telemetryQueueHead];
+        if (!publishRawMessage(message.topic, message.payload, message.payloadLength))
+            return;
+
+        telemetryQueueHead = (telemetryQueueHead + 1) % MQTT_TELEMETRY_BUFFER_SIZE;
+        telemetryQueueCount--;
+        lastQueuedMessageSentAt = now;
+
+        Serial.printf("[MQTT] Buffered telemetry sent. Remaining: %u\n",
+                      (unsigned int)telemetryQueueCount);
     }
 
     void handleCommandPayload(const char *payload, int length)
@@ -196,7 +267,10 @@ void handleMqtt()
     }
 
     if (mqttClient == nullptr || mqttConnected || !mqttReconnectPending)
+    {
+        flushQueuedTelemetry();
         return;
+    }
 
     if (isMotorMoving())
         return;
@@ -225,12 +299,6 @@ void handleMqtt()
 
 bool publishTelemetry(const SensorData &data)
 {
-    if (mqttClient == nullptr || !mqttConnected)
-    {
-        Serial.println("[MQTT] Telemetry skipped: MQTT is not connected.");
-        return false;
-    }
-
     unsigned long timestamp = getUnixTime();
     if (timestamp < 10000)
     {
@@ -257,16 +325,22 @@ bool publishTelemetry(const SensorData &data)
     }
 
     String topic = telemetryTopic();
-    int messageId = esp_mqtt_client_publish(mqttClient, topic.c_str(), payload, payloadLength, 1, 0);
-
-    if (messageId >= 0)
+    if (publishRawMessage(topic.c_str(), payload, payloadLength))
     {
-        Serial.printf("[MQTT] Telemetry queued to %s, msg_id=%d, bytes=%u\n",
-                      topic.c_str(), messageId, (unsigned int)payloadLength);
+        Serial.printf("[MQTT] Telemetry sent to %s, bytes=%u\n",
+                      topic.c_str(), (unsigned int)payloadLength);
         return true;
     }
 
-    Serial.println("[MQTT] Telemetry publish failed.");
+    if (MQTT_BUFFER_TELEMETRY)
+    {
+        queueTelemetryMessage(topic.c_str(), payload, payloadLength);
+    }
+    else
+    {
+        Serial.println("[MQTT] Telemetry skipped: MQTT is not connected.");
+    }
+
     return false;
 }
 
